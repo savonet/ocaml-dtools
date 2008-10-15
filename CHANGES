@@ -1,0 +1,46 @@
+0.1.6 (15-04-2008)
+=====
+* Reopen stdin/out/er instead of closing them
+* Install .cmx file when available
+
+0.1.5 (12-12-2007)
+=====
+* Fix: better daemon setup:
+  + Close stdout and stderr
+  + Set umask to 0
+  + Change pwd to /
+
+0.1.4 (10-17-2007)
+=====
+* Fix: do not include whole thread and unix lib in dtools lib
+* Conf: full rewrite, keys are documented
+* Conf: new: --conf-descr and --conf-dump features
+* Log: full rewrite, loggers are associated to keys
+* Log: fix: small error in timestamp generation
+
+0.1.3 (02-03-2007)
+=====
+* Fixed a deadlock
+* Made possible to check the type of a settings variable
+
+0.1.2 (07-07-2006)
+=====
+* Log: new human-readable timestamps by default.
+* Init: remove the pidfile.
+* Init: concurrent init disabled by default.
+* Init: better handling of exceptions in start/stop phases.
+
+0.1.1 (20-04-2005)
+=====
+* Conf: added: access to a reference containing a volatile configuration value.
+* Init: added: init tracability support.
+* Init: added: multithreaded init.
+* Conf: added: global default logging level key.
+* Conf: fix: Better handling of values syntax error exceptions.
+* Conf: fix: Bad configuration pair notification takes ~root in account.
+* Init: added: Support for depends, triggers, before and after lists.
+* Init: fix: Better Daemonization.
+
+0.1.0 (28-02-2004)
+=====
+* Initial release.

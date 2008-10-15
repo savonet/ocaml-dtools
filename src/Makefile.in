@@ -1,0 +1,40 @@
+# Copyright 2003-2006 Savonet team
+
+OCAMLMAKEFILE = OCamlMakefile
+
+OCAMLFIND = @OCAMLFIND@
+OCAMLFIND_LDCONF= @OCAMLFIND_LDCONF@
+OCAMLC = @OCAMLC@
+OCAMLOPT = @OCAMLOPT@
+OCAMLMKTOP = @OCAMLMKTOP@
+OCAMLCP = @OCAMLCP@
+OCAMLDEP = @OCAMLDEP@
+OCAMLLEX = @OCAMLLEX@
+OCAMLYACC = @OCAMLYACC@
+OCAMLDOC = @OCAMLDOC@
+LATEX = @LATEX@
+DVIPS = @DVIPS@
+PS2PDF = @PS2PDF@
+OCAMLLIBPATH = @CAMLLIBPATH@
+BEST = @BEST@
+
+THREADS = "yes"
+SOURCES = dtools.ml dtools.mli
+RESULT = dtools
+LIBINSTALL_FILES = $(wildcard *.cma *.cmxa *.cmx *.mli *.cmi *.a)
+OCAMLLDFLAGS =
+LIBS =
+
+all: $(BEST)
+
+byte: byte-code-library
+
+native: native-code-library
+
+install: libinstall
+
+uninstall: libuninstall
+
+update: uninstall install
+
+-include $(OCAMLMAKEFILE)
