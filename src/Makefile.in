@@ -23,7 +23,7 @@ SOURCES = dtools.ml dtools.mli
 RESULT = dtools
 LIBINSTALL_FILES = $(wildcard *.cma *.cmxa *.cmx *.mli *.cmi *.a)
 OCAMLLDFLAGS =
-LIBS =
+NO_CUSTOM = yes
 
 all: $(BEST)
 
