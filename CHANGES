@@ -2,7 +2,7 @@
 =====
 * Reopen stdin/out/er instead of closing them
 * Install .cmx file when available
-* Set as blocked signals that we use in Init,
+* Set as blocked signals that we use with Thread.wait_signal,
   i.e. sigterm and sigint. Those are not blocked
   by default on some systems (e.g. freeBSD).
 

@@ -513,6 +513,9 @@ struct
       end
     in
     ignore (Thread.create thread (Unix.getpid ()));
+    (* We want to block those signals. (not blocked by default
+     * on freebsd for instance) *)
+    ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     wait_signal ();
     begin try exec stop with e -> raise (StopError e) end
 
@@ -601,9 +604,6 @@ struct
 
   let init ?(prohibit_root=false) f =
     if prohibit_root then exit_when_root ();
-    (* We want to block those signals. (not blocked by default 
-     * on freebsd for instance) *)
-    ignore(Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
@@ -774,7 +774,6 @@ struct
 	let log_file_path = conf_file_path#get in
 	let log_file_perms = conf_file_perms#get in
 	(* Re-open log file on SIGUSR1 -- for logrotate *)
-        ignore(Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigusr1]);
 	Sys.set_signal Sys.sigusr1
 	  (Sys.Signal_handle
               begin fun _ ->
