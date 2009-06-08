@@ -601,6 +601,9 @@ struct
 
   let init ?(prohibit_root=false) f =
     if prohibit_root then exit_when_root ();
+    (* We want to block those signals. (not blocked by default 
+     * on freebsd for instance) *)
+    ignore(Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);

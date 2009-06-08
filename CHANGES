@@ -2,6 +2,9 @@
 =====
 * Reopen stdin/out/er instead of closing them
 * Install .cmx file when available
+* Set as blocked signals that we use in Init,
+  i.e. sigterm and sigint. Those are not blocked
+  by default on some systems (e.g. freeBSD).
 
 0.1.5 (12-12-2007)
 =====
