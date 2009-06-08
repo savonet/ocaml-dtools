@@ -513,9 +513,6 @@ struct
       end
     in
     ignore (Thread.create thread (Unix.getpid ()));
-    (* We want to block those signals. (not blocked by default
-     * on freebsd for instance) *)
-    ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     wait_signal ();
     begin try exec stop with e -> raise (StopError e) end
 
@@ -607,6 +604,8 @@ struct
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
+    (* We want to block those signals. *)
+    ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     if conf_daemon#get
     then daemonize (main f)
     else catch (main f) (fun () -> ())
