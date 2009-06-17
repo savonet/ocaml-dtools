@@ -1,5 +1,6 @@
 0.1.6 (15-04-2008)
 =====
+* Added support for --enable-debugging configure option
 * Reopen stdin/out/er instead of closing them
 * Install .cmx file when available
 * Set as blocked signals that we use with Thread.wait_signal,
