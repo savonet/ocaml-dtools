@@ -501,7 +501,10 @@ struct
 
   let main f () =
     begin try exec start with e -> raise (StartError e) end;
-    let quit pid = Unix.kill pid Sys.sigterm in
+    let quit pid = 
+      if Sys.os_type <> "Win32" then
+        Unix.kill pid Sys.sigterm 
+    in
     let thread pid =
       begin try f (); quit pid with
       | e ->
@@ -512,8 +515,11 @@ struct
 	  if conf_catch_exn#get then quit pid else raise e
       end
     in
-    ignore (Thread.create thread (Unix.getpid ()));
-    wait_signal ();
+    let th = Thread.create thread (Unix.getpid ()) in
+    if Sys.os_type <> "Win32" then
+      wait_signal ()
+    else
+      Thread.join th ;
     begin try exec stop with e -> raise (StopError e) end
 
   let catch f clean =
@@ -605,7 +611,8 @@ struct
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
     (* We want to block those signals. *)
-    ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
+    if Sys.os_type <> "Win32" then
+      ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
     if conf_daemon#get
     then daemonize (main f)
     else catch (main f) (fun () -> ())

@@ -1,3 +1,10 @@
+0.1.7 ()
+=====
+* Use Thread.join instead of Thread.wait_signal
+  under Win32 (Thread.wait_signal is not implemented
+  in this case). Also do not use sigmask since it is 
+  not implemented either.
+
 0.1.6 (15-04-2008)
 =====
 * Added support for --enable-debugging configure option
