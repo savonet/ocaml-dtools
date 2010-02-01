@@ -382,8 +382,12 @@ struct
 
   let conf =
     Conf.void "initialization configuration"
+  (* Unix.fork is not implemented in Win32. *)
+  let daemon_conf = 
+    if Sys.os_type <> "Win32" then conf
+    else Conf.void "dummy conf"
   let conf_daemon =
-    Conf.bool ~p:(conf#plug "daemon") ~d:false
+    Conf.bool ~p:(daemon_conf#plug "daemon") ~d:false
       "run in daemon mode"
   let conf_daemon_pidfile =
     Conf.bool ~p:(conf_daemon#plug "pidfile") ~d:false
@@ -613,16 +617,18 @@ struct
     (* We want to block those signals. *)
     if Sys.os_type <> "Win32" then
       ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
-    if conf_daemon#get
-    then daemonize (main f)
+      if conf_daemon#get && Sys.os_type <> "Win32"
+      then daemonize (main f)
     else catch (main f) (fun () -> ())
 
   let args =
-    [
-      ["--daemon";"-d"],
-      Arg.Unit (fun () -> conf_daemon#set true),
-      "run in daemon mode";
-    ]
+    if Sys.os_type <> "Win32" then
+      [
+        ["--daemon";"-d"],
+        Arg.Unit (fun () -> conf_daemon#set true),
+        "run in daemon mode";
+      ]
+    else []
 
 end
 
