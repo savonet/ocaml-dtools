@@ -786,7 +786,8 @@ struct
 	let log_file_path = conf_file_path#get in
 	let log_file_perms = conf_file_perms#get in
 	(* Re-open log file on SIGUSR1 -- for logrotate *)
-	Sys.set_signal Sys.sigusr1
+        if Sys.os_type <> "Win32" then
+	 Sys.set_signal Sys.sigusr1
 	  (Sys.Signal_handle
               begin fun _ ->
 		begin match !log_ch with
