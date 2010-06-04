@@ -614,12 +614,16 @@ struct
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
-    (* We want to block those signals. *)
+    (* We block signals that would kill us,
+     * we'll wait for them and shutdown cleanly.
+     * On Windows this is impossible so the only way for the application
+     * to shutdown is to terminate the main function [f]. *)
     if Sys.os_type <> "Win32" then
       ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
-      if conf_daemon#get && Sys.os_type <> "Win32"
-      then daemonize (main f)
-    else catch (main f) (fun () -> ())
+    if conf_daemon#get && Sys.os_type <> "Win32" then
+      daemonize (main f)
+    else
+      catch (main f) (fun () -> ())
 
   let args =
     if Sys.os_type <> "Win32" then
