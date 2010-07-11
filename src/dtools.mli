@@ -1,14 +1,14 @@
 
   (**************************************************************************)
   (*  ocaml-dtools                                                          *)
-  (*  Copyright (C) 2003-2006  The Savonet Team                             *)
+  (*  Copyright (C) 2003-2010  The Savonet Team                             *)
   (**************************************************************************)
   (*  This program is free software; you can redistribute it and/or modify  *)
   (*  it under the terms of the GNU General Public License as published by  *)
   (*  the Free Software Foundation; either version 2 of the License, or     *)
   (*  any later version.                                                    *)
   (**************************************************************************)
-  (*  Contact: dev@gim.name                                                 *)
+  (*  Contact: savonet-devl@lists.sourceforge.net                           *)
   (**************************************************************************)
 
 (* $Id$ *)
@@ -253,6 +253,22 @@ sig
       >
     (**
        Type for loggers.
+    *)
+
+  type custom_log =
+    {
+      timestamp : bool ;
+      exec      : string -> unit
+    }
+
+  val add_custom_log : string -> custom_log -> unit
+    (**
+      Add a custom logging functions. 
+    *)
+
+  val rm_custom_log : string -> unit
+    (**
+      Remove a custom logging functions.    
     *)
 
   val make : Conf.path -> t

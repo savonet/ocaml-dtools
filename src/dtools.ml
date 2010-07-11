@@ -1,14 +1,14 @@
 
   (**************************************************************************)
   (*  ocaml-dtools                                                          *)
-  (*  Copyright (C) 2003-2006  The Savonet Team                             *)
+  (*  Copyright (C) 2003-2010  The Savonet Team                             *)
   (**************************************************************************)
   (*  This program is free software; you can redistribute it and/or modify  *)
   (*  it under the terms of the GNU General Public License as published by  *)
   (*  the Free Software Foundation; either version 2 of the License, or     *)
   (*  any later version.                                                    *)
   (**************************************************************************)
-  (*  Contact: dev@gim.name                                                 *)
+  (*  Contact: savonet-devl@lists.sourceforge.net                           *)
   (**************************************************************************)
 
 (* $Id$ *)
@@ -645,10 +645,22 @@ struct
 	f: 'a. int -> ('a, unit, string, unit) format4 -> 'a;
       >
 
+  type custom_log = 
+    { 
+      timestamp : bool ;
+      exec      : string -> unit 
+    }
+
   let log_ch = ref None
 
   (* Mutex to avoid interlacing logs *)
   let log_mutex = Mutex.create ()
+
+  (* Custom logging methods. *)
+  let custom_log : (string, custom_log) Hashtbl.t = Hashtbl.create 0
+
+  let add_custom_log name f = Hashtbl.replace custom_log name f
+  let rm_custom_log name = Hashtbl.remove custom_log name
 
   let conf =
     Conf.void "log configuration"
@@ -702,22 +714,27 @@ struct
   let print (time, str) =
     let to_stdout = conf_stdout#get in
     let to_file = !log_ch <> None in
+    let timestamp = timestamp time in
+    let message = 
+        Printf.sprintf "%s %s" timestamp str
+    in
     begin match to_stdout || to_file with
     | true ->
-        let timestamp = timestamp time in
 	let do_stdout () =
-	  Printf.printf "%s %s\n%!" timestamp str;
+	  Printf.printf "%s\n%!" message;
 	in
 	let do_file () =
 	  begin match !log_ch with
 	  | None -> ()
-	  | Some ch -> Printf.fprintf ch "%s %s\n%!" timestamp str;
+	  | Some ch -> Printf.fprintf ch "%s\n%!" message;
 	  end
 	in
 	if to_stdout then do_stdout ();
 	if to_file then do_file ();
     | false -> ()
-    end
+    end ;
+    let f _ x = x.exec (if x.timestamp then message else str) in
+    Hashtbl.iter f custom_log
 
   let proceed entry =
     mutexify (fun () ->

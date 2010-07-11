@@ -1,7 +1,8 @@
-AC_INIT(ocaml-dtools, 0.1.6, savonet-users@lists.sourceforge.net)
+AC_INIT(ocaml-dtools, 0.2.0, savonet-users@lists.sourceforge.net)
 VERSION=$PACKAGE_VERSION
 AC_MSG_RESULT(configuring $PACKAGE_STRING)
 
+REQUIRES="str unix thread"
 OCAMLFIND_LDCONF=""
 AC_ARG_ENABLE([ldconf], AC_HELP_STRING([--disable-ldconf],[don't modify the dynamic loader configuration file (default is enable)]),[ac_enable_ldconf=$enableval],[ac_enable_ldconf=$enableval],[ac_enable_ldconf=yes])
 if test "$ac_enable_ldconf" = no ; then
@@ -139,6 +140,30 @@ AC_PATH_PROG(PS2PDF,ps2pdf,no)
 #	AC_MSG_ERROR(Cannot find ps2pdf.)
 #fi
 
+#
+# Syslog
+#
+
+AC_ARG_WITH([syslog-dir],
+   AC_HELP_STRING(
+      [--with-syslog-dir=path],
+      [look for ocaml-syslog library in "path" (autodetected by default)]))
+AC_ARG_ENABLE([syslog],
+              AC_HELP_STRING([--disable-syslog],["don't use ocaml-syslog"]))
+
+if test "x$enable_syslog" != "xno" ; then
+AC_MSG_CHECKING(for ocaml-syslog)
+    if ! $OCAMLFIND query syslog > /dev/null 2>&1 ; then
+        SYSLOG_FILES=""
+        AC_MSG_RESULT(not found)
+    else
+        SYSLOG_FILES="dtools_syslog.ml"
+        AC_MSG_RESULT(ok)
+        REQUIRES="$REQUIRES syslog"
+        INC="$INC `$OCAMLFIND query syslog`"
+    fi
+fi
+
 # substitutions to perform
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLOPT)
@@ -157,6 +182,9 @@ AC_SUBST(OCAMLFIND_LDCONF)
 AC_SUBST(OCAMLCP)	# TODO
 AC_SUBST(CAMLLIBPATH)
 AC_SUBST(BEST)
+AC_SUBST(REQUIRES)
+AC_SUBST(SYSLOG_FILES)
+AC_SUBST(INC)
 
 AC_SUBST(LATEX)		# TODO
 AC_SUBST(DVIPS)		# TODO
