@@ -27,6 +27,8 @@ INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
 
+@SYSLOG_TARGET@
+
 all: $(BEST)
 
 byte: byte-code-library

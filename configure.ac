@@ -155,9 +155,11 @@ if test "x$enable_syslog" != "xno" ; then
 AC_MSG_CHECKING(for ocaml-syslog)
     if ! $OCAMLFIND query syslog > /dev/null 2>&1 ; then
         SYSLOG_FILES=""
+        SYSLOG_TARGET=""
         AC_MSG_RESULT(not found)
     else
         SYSLOG_FILES="dtools_syslog.ml"
+        SYSLOG_TARGET="dtools_syslog.cmi: dtools.cmi"
         AC_MSG_RESULT(ok)
         REQUIRES="$REQUIRES syslog"
         INC="$INC `$OCAMLFIND query syslog`"
@@ -184,6 +186,7 @@ AC_SUBST(CAMLLIBPATH)
 AC_SUBST(BEST)
 AC_SUBST(REQUIRES)
 AC_SUBST(SYSLOG_FILES)
+AC_SUBST(SYSLOG_TARGET)
 AC_SUBST(INC)
 
 AC_SUBST(LATEX)		# TODO
