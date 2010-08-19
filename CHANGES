@@ -1,9 +1,10 @@
-0.1.7 ()
+0.2.0 (19-08-2010)
 =====
 * Use Thread.join instead of Thread.wait_signal
   under Win32 (Thread.wait_signal is not implemented
   in this case). Also do not use sigmask since it is 
   not implemented either.
+* Added support for Syslog when detected.
 
 0.1.6 (15-04-2008)
 =====
