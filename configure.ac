@@ -1,8 +1,8 @@
-AC_INIT(ocaml-dtools, 0.2.0, savonet-users@lists.sourceforge.net)
+AC_INIT(ocaml-dtools, 0.2.1, savonet-users@lists.sourceforge.net)
 VERSION=$PACKAGE_VERSION
 AC_MSG_RESULT(configuring $PACKAGE_STRING)
 
-REQUIRES="str unix thread"
+REQUIRES="str unix threads"
 OCAMLFIND_LDCONF=""
 AC_ARG_ENABLE([ldconf], AC_HELP_STRING([--disable-ldconf],[don't modify the dynamic loader configuration file (default is enable)]),[ac_enable_ldconf=$enableval],[ac_enable_ldconf=$enableval],[ac_enable_ldconf=yes])
 if test "$ac_enable_ldconf" = no ; then
