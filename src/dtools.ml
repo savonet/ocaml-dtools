@@ -614,6 +614,10 @@ struct
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
+    (* See http://caml.inria.fr/mantis/print_bug_page.php?bug_id=4640
+     * for this: we want Unix EPIPE error and not SIGPIPE, which
+     * crashes the program.. *)
+    Sys.set_signal Sys.sigpipe Sys.Signal_ignore;
     (* We block signals that would kill us,
      * we'll wait for them and shutdown cleanly.
      * On Windows this is impossible so the only way for the application
