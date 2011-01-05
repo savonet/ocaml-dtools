@@ -395,6 +395,15 @@ struct
   let conf_daemon_pidfile_path =
     Conf.string ~p:(conf_daemon_pidfile#plug "path")
       "path to pidfile"
+  let conf_daemon_drop_user = 
+    Conf.bool ~p:(conf_daemon#plug "change_user") ~d:false
+      "Changes the effective user (drops privileges)."
+  let conf_daemon_user = 
+    Conf.string ~p:(conf_daemon_drop_user#plug "user") 
+      ~d:"daemon" "User used to run the daemon."
+  let conf_daemon_group = 
+    Conf.string ~p:(conf_daemon_drop_user#plug "group") 
+      ~d:"daemon" "Group used to run the daemon."
   let conf_trace =
     Conf.bool ~p:(conf#plug "trace") ~d:false
       "dump an initialization trace"
@@ -553,7 +562,7 @@ struct
     flush outchan;
     let fd1 = Unix.descr_of_out_channel outchan in
     let fd2 =
-      Unix.openfile filename [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666
+      Unix.openfile filename [Unix.O_WRONLY] 0o666
     in
     Unix.dup2 fd2 fd1;
     Unix.close fd2
@@ -562,47 +571,50 @@ struct
   let reopen_in inchan filename =
     let fd1 = Unix.descr_of_in_channel inchan in
     let fd2 =
-      Unix.openfile filename [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666
+      Unix.openfile filename [Unix.O_RDONLY] 0o666
     in
     Unix.dup2 fd2 fd1;
     Unix.close fd2
 
-  let daemonize fn =
-    begin match Unix.fork () with
-    | 0 ->
-        (* Change umask to 0 *)
-        ignore(Unix.umask 0) ;
-	let f =  
-          match conf_daemon_pidfile#get with
-	    | false ->
-	       fun () -> catch fn (fun () -> ())
-	    | true ->
-	       (* Write PID to file *)
-	       let filename = conf_daemon_pidfile_path#get in
-	       let f = open_out filename in
-	       let pid = Unix.getpid () in
-	       output_string f (string_of_int pid);
-	       output_char f '\n';
-	       close_out f ;
-               fun () -> catch fn (fun () -> Unix.unlink filename)
-	in
-        (* Dettach from the console *)
-        if (Unix.setsid () < 0) then
-               exit 1;
-        (* chdir to / *)
-        Unix.chdir "/" ;
-        (* Reopen usual file descriptor *)
-        flush_all ();
-        reopen_in stdin "/dev/null";
-        reopen_out stdout "/dev/null";
-        reopen_out stderr "/dev/null";
-        (* Main loop *)
-        f () ;
-        exit 0
-    | _ -> exit 0
-    end
+  let daemonize () =
+    if Unix.fork () <> 0 then exit 0 ;
+    (* Dettach from the console *)
+    if (Unix.setsid () < 0) then
+           exit 1;
+    (* Refork.. *)
+    if Unix.fork () <> 0 then exit 0 ;
+    (* Change umask to 0 *)
+    ignore(Unix.umask 0) ;
+    (* chdir to / *)
+    Unix.chdir "/" ;
+    if conf_daemon_pidfile#get then
+     begin
+      (* Write PID to file *)
+      let filename = conf_daemon_pidfile_path#get in
+      let f = open_out filename in
+      let pid = Unix.getpid () in
+      output_string f (string_of_int pid);
+      output_char f '\n';
+      close_out f 
+     end ;
+    (* Reopen usual file descriptor *)
+    reopen_in stdin "/dev/null";
+    reopen_out stdout "/dev/null";
+    reopen_out stderr "/dev/null"
 
   let exit_when_root () =
+    (* Change user.. *)
+    if conf_daemon_drop_user#get then
+     begin
+      let grd = Unix.getgrnam conf_daemon_group#get in
+      let gid = grd.Unix.gr_gid in
+      if Unix.getegid () <> gid then
+        Unix.setgid gid ;
+      let pwd = Unix.getpwnam conf_daemon_user#get in
+      let uid = pwd.Unix.pw_uid in
+      if Unix.geteuid () <> uid then
+        Unix.setuid uid
+     end;
     let security s = Printf.eprintf "init: security exit, %s\n%!" s in
     if Unix.geteuid () = 0 then
       begin security "root euid (user)."; exit (-1) end;
@@ -611,6 +623,8 @@ struct
 
   let init ?(prohibit_root=false) f =
     if prohibit_root then exit_when_root ();
+    if conf_daemon#get && Sys.os_type <> "Win32" then
+      daemonize () ;
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
@@ -620,10 +634,7 @@ struct
      * to shutdown is to terminate the main function [f]. *)
     if Sys.os_type <> "Win32" then
       ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
-    if conf_daemon#get && Sys.os_type <> "Win32" then
-      daemonize (main f)
-    else
-      catch (main f) (fun () -> ())
+    catch (main f) (fun () -> ())
 
   let args =
     if Sys.os_type <> "Win32" then
