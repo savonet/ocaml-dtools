@@ -1,3 +1,10 @@
+0.2.2 ()
+=====
+* Cleaned up daemonization code,
+  added optional change of user, 
+  should be useful when running 
+  as root.
+
 0.2.1 (18-09-2010)
 =====
 * Fixed requires, s/thread/threads/
