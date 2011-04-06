@@ -7,6 +7,7 @@ OCAMLFIND_LDCONF= @OCAMLFIND_LDCONF@
 OCAMLC = @OCAMLC@
 OCAMLOPT = @OCAMLOPT@
 OCAMLMKTOP = @OCAMLMKTOP@
+OCAMLMKLIB = @OCAMLMKLIB@
 OCAMLCP = @OCAMLCP@
 OCAMLDEP = @OCAMLDEP@
 OCAMLLEX = @OCAMLLEX@
@@ -16,7 +17,7 @@ LATEX = @LATEX@
 DVIPS = @DVIPS@
 PS2PDF = @PS2PDF@
 OCAMLLIBPATH = @CAMLLIBPATH@
-BEST = @BEST@
+OCAMLBEST = @OCAMLBEST@
 
 THREADS = "yes"
 SOURCES = dtools.ml dtools.mli @SYSLOG_FILES@
@@ -27,11 +28,11 @@ INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
 
-all: $(BEST)
+all: $(OCAMLBEST)
 
 byte: byte-code-library
 
-native: native-code-library
+opt: native-code-library
 
 install: libinstall
 

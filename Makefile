@@ -3,7 +3,7 @@
 SRC=src
 PROGNAME=ocaml-dtools
 DISTFILES = bootstrap CHANGES configure configure.ac \
-            COPYING Makefile README \
+            COPYING Makefile README m4/*.m4 \
             src/OCamlMakefile src/*Makefile.in src/META.in src/*.ml src/*.mli \
             doc/html
 
