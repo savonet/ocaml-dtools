@@ -512,6 +512,15 @@ struct
   exception StartError of exn
   exception StopError of exn
 
+  (* Dummy functions in the case where 
+   * Printexc does not have the required
+   * functions. *)
+  let get_backtrace () =
+  "ocaml-dtools not compiled with ocaml >= 3.11, \
+   cannot print stack backtrace"
+
+  open Printexc
+
   let main f () =
     begin try exec start with e -> raise (StartError e) end;
     let quit pid = 
@@ -524,7 +533,7 @@ struct
 	  let se = Printexc.to_string e in
 	  Printf.eprintf
 	    "init: exception encountered during main phase:\n  %s\n%!" se;
-	  Printf.eprintf "exception: %s\n%!" se;
+	  Printf.eprintf "exception: %s\n%s%!" se (get_backtrace ());
 	  if conf_catch_exn#get then quit pid else raise e
       end
     in
