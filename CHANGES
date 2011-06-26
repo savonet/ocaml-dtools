@@ -1,4 +1,4 @@
-0.2.2 ()
+0.2.2 (26-06-2011)
 =====
 * Cleaned up daemonization code,
   added optional change of user, 
