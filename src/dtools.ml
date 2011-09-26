@@ -456,12 +456,11 @@ struct
   let rec exec a =
     let log =
       if conf_trace#get then
-	begin fun s ->
-	  let id = Thread.id (Thread.self ()) in
-	  Printf.printf "init(%i):%-35s@%s\n%!" id a.name s
-	end
-      else
-	begin fun s -> () end
+	     begin fun s ->
+	      let id = Thread.id (Thread.self ()) in
+	      Printf.printf "init(%i):%-35s@%s\n%!" id a.name s
+	     end
+      else begin fun s -> () end
     in
     let rec exec a =
       log "called";
@@ -470,32 +469,31 @@ struct
         if not a.launched
         then begin
           a.launched <- true;
-	  log "start";
-	  log "start-depends";
-	  mult_exec a.depends;
-	  log "stop-depends";
-	  log "start-atom";
-	  a.f ();
-	  log "stop-atom";
-	  log "start-triggers";
-	  mult_exec a.triggers;
-	  log "stop-triggers";
-	  log "stop";
-	end;
+	        log "start";
+	        log "start-depends";
+	        mult_exec a.depends;
+	        log "stop-depends";
+	        log "start-atom";
+	        a.f ();
+	        log "stop-atom";
+	        log "start-triggers";
+	        mult_exec a.triggers;
+	        log "stop-triggers";
+	        log "stop";
+	      end;
         Mutex.unlock a.mutex;
         log "return"
       with e -> Mutex.unlock a.mutex; raise e
     and mult_exec l =
       begin match conf_concurrent#get with
-      | true ->
-	  let ask x =
-	    log (Printf.sprintf "exec %s" x.name);
-	    Thread.create exec x
-	  in
-	  let threads = List.map ask l in
-	  List.iter Thread.join threads
-      | false ->
-	  List.iter exec l
+       | true ->
+	        let ask x =
+	          log (Printf.sprintf "exec %s" x.name);
+	          Thread.create exec x
+	        in
+	        let threads = List.map ask l in
+	        List.iter Thread.join threads
+       | false -> List.iter exec l
       end
     in
     exec a
@@ -546,7 +544,7 @@ struct
 
   let catch f clean =
     begin try
-	f (); clean ()
+	     f (); clean ()
       with
       | StartError (e) ->
 	  Printf.eprintf
