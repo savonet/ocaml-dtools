@@ -1,8 +1,8 @@
-AC_INIT(ocaml-dtools, 0.2.2, savonet-users@lists.sourceforge.net)
+AC_INIT([ocaml-dtools],[0.2.2],[savonet-users@lists.sourceforge.net])
 VERSION=$PACKAGE_VERSION
 AC_MSG_RESULT(configuring $PACKAGE_STRING)
 
-AC_CHECK_OCAML_COMPILERS()
+AC_BASE_CHECKS()
 
 REQUIRES="str unix threads"
 #
@@ -10,11 +10,9 @@ REQUIRES="str unix threads"
 #
 
 AC_ARG_WITH([syslog-dir],
-   AC_HELP_STRING(
-      [--with-syslog-dir=path],
-      [look for ocaml-syslog library in "path" (autodetected by default)]))
+   AS_HELP_STRING([--with-syslog-dir=path],[look for ocaml-syslog library in "path" (autodetected by default)]))
 AC_ARG_ENABLE([syslog],
-              AC_HELP_STRING([--disable-syslog],["don't use ocaml-syslog"]))
+              AS_HELP_STRING([--disable-syslog],["don't use ocaml-syslog"]))
 
 if test "x$enable_syslog" != "xno" ; then
 AC_CHECK_OCAML_BINDING([syslog])

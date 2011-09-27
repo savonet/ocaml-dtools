@@ -38,7 +38,7 @@ dist: doc
 	VERSION="$(shell grep 'AC_INIT' configure.ac)"; \
 		VERSION=`echo "$$VERSION" | sed -e 's/AC_INIT([^,]*, \([^,]*\), .*)/\1/'`; \
 		mkdir $(PROGNAME)-$$VERSION; \
-		cp -r --parents $(DISTFILES) $(PROGNAME)-$$VERSION; \
+		cp -R -L --parents $(DISTFILES) $(PROGNAME)-$$VERSION; \
 		tar zcvf $(PROGNAME)-$$VERSION.tar.gz $(PROGNAME)-$$VERSION; \
 		rm -rf $(PROGNAME)-$$VERSION
 
