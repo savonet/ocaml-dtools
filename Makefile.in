@@ -1,11 +1,12 @@
 # Copyright 2003-2007 Savonet team
 
-SRC=src
-PROGNAME=ocaml-dtools
-DISTFILES = bootstrap CHANGES configure configure.ac \
+SRC := src
+PROGNAME := ocaml-dtools
+DISTFILES := bootstrap CHANGES configure configure.ac \
             COPYING Makefile README m4/*.m4 \
             src/OCamlMakefile src/*Makefile.in src/META.in src/*.ml src/*.mli \
             doc/html
+VERSION := @VERSION@
 
 all:
 	$(MAKE) -C $(SRC)
@@ -35,12 +36,10 @@ doc:
 	rm -rf src/doc
 
 dist: doc
-	VERSION="$(shell grep 'AC_INIT' configure.ac)"; \
-		VERSION=`echo "$$VERSION" | sed -e 's/AC_INIT([^,]*, \([^,]*\), .*)/\1/'`; \
-		mkdir $(PROGNAME)-$$VERSION; \
-		cp -R -L --parents $(DISTFILES) $(PROGNAME)-$$VERSION; \
-		tar zcvf $(PROGNAME)-$$VERSION.tar.gz $(PROGNAME)-$$VERSION; \
-		rm -rf $(PROGNAME)-$$VERSION
+	mkdir $(PROGNAME)-$(VERSION)
+	cp -R -L --parents $(DISTFILES) $(PROGNAME)-$(VERSION)
+	tar zcvf ../$(PROGNAME)-$(VERSION).tar.gz $(PROGNAME)-$(VERSION)
+	rm -rf $(PROGNAME)-$(VERSION)
 
 .PHONY: doc
 

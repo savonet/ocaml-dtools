@@ -28,8 +28,10 @@ fi
 AC_SUBST(REQUIRES)
 AC_SUBST(SYSLOG_FILES)
 AC_SUBST(INC)
+AC_SUBST(VERSION)
 
 # Finally create the Makefile and samples
 AC_CONFIG_FILES([src/Makefile],[chmod a-w src/Makefile])
 AC_CONFIG_FILES([src/META])
+AC_CONFIG_FILES([Makefile],[chmod a-w Makefile])
 AC_OUTPUT
