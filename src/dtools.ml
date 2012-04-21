@@ -39,8 +39,12 @@ struct
   type 'a t =
       <
 	kind: string option;
-	descr: string;
-	comments: string list;
+  alias:     
+    ?comments:string list ->
+    ?descr:string ->
+    (ut -> unit) -> 'a t;
+  descr: string;
+  comments: string list;
 	plug: string -> ut -> unit;
         subs: string list;
         path: string list -> ut;
@@ -93,13 +97,13 @@ struct
   object (self)
 
     val kind : string option = kind
-    val descr : string = descr
-    val comments : string list = comments
+    val mutable descr : string = descr
+    val mutable comments : string list = comments
 
     val mutable links : links = []
 
-    val mutable value_d : 'a option = d
-    val mutable value : 'a option = None
+    val value_d : 'a option ref = ref d
+    val value : 'a option ref = ref None
 
     initializer
       p self#ut;
@@ -136,30 +140,52 @@ struct
     method kind = kind
 
     method descr = descr
+    method private set_descr new_descr =
+      descr <- new_descr
+
     method comments = comments
+    method private set_comments new_comments =
+      comments <- new_comments
 
     method plug s t =
       if t#routes self#ut <> [] then raise (Cyclic (self#ut, t));
       if List.mem_assoc s links then raise (Bound (self#ut, s));
       links <- (s, t) :: links
 
+    (* Nice hack. heh! *)
+    method alias ?comments ?descr p =
+      let maybe f x =
+        match x with
+          | Some x -> f x
+          | None   -> ()
+      in
+      let old_comments = self#comments in
+      let old_descr = self#descr in
+      maybe self#set_comments comments ;
+      maybe self#set_descr descr ;
+      let key = Oo.copy self in
+      p key#ut ;
+      self#set_comments old_comments;
+      self#set_descr old_descr;
+      key
+
     method ut = (self :> ut)
 
-    method get_d : 'a option = value_d
+    method get_d : 'a option = !value_d
 
-    method set_d (v : 'a option) : unit = value_d <- v
+    method set_d (v : 'a option) : unit = value_d := v
 
     method get : 'a =
-      begin match value with
+      begin match !value with
       | None ->
-	  begin match value_d with
+	  begin match !value_d with
 	  | None -> raise (Undefined (self#ut))
 	  | Some v -> v
 	  end
       | Some v -> v
       end
 
-    method set (v : 'a) : unit = value <- Some v
+    method set (v : 'a) : unit = value := Some v
 
   end
 

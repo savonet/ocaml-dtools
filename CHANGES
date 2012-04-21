@@ -1,3 +1,7 @@
+0.3.0 ()
+=====
+* Added Conf.alias
+
 0.2.2 (26-06-2011)
 =====
 * Cleaned up daemonization code,

@@ -55,6 +55,10 @@ sig
   type 'a t =
       <
 	kind: string option;
+  alias:
+    ?comments:string list ->
+    ?descr:string ->
+    (ut -> unit) -> 'a t;
 	descr: string;
 	comments: string list;
 	plug: link -> ut -> unit;
