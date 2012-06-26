@@ -2,8 +2,8 @@
 
 SRC := src
 PROGNAME := ocaml-dtools
-DISTFILES := bootstrap CHANGES configure configure.ac \
-            COPYING Makefile README m4/*.m4 \
+DISTFILES := @AUTOCONF_INSTALL_FILES@ bootstrap CHANGES configure configure.ac \
+            COPYING Makefile README Makefile.in \
             src/OCamlMakefile src/*Makefile.in src/META.in src/*.ml src/*.mli \
             doc/html
 VERSION := @VERSION@
