@@ -571,19 +571,19 @@ struct
   let catch f clean =
     begin try
 	     f (); clean ()
-      with
+    with
       | StartError (e) ->
-	  Printf.eprintf
-	    "init: exception encountered during start phase:\n  %s\n%!"
-	    (Printexc.to_string e);
-	  clean ();
-	  exit (-1)
+	        Printf.eprintf
+	          "init: exception encountered during start phase:\n  %s\n%!"
+	          (Printexc.to_string e);
+	        clean ();
+	        exit (-1)
       | StopError (e) ->
-	  Printf.eprintf
-	    "init: exception encountered during stop phase:\n  %s\n%!"
-	    (Printexc.to_string e);
-	  clean ();
-	  exit (-1)
+	        Printf.eprintf
+	          "init: exception encountered during stop phase:\n  %s\n%!"
+	          (Printexc.to_string e);
+	        clean ();
+	        exit (-1)
     end
 
   (** A function to reopen a file descriptor
@@ -635,6 +635,13 @@ struct
     reopen_out stdout "/dev/null";
     reopen_out stderr "/dev/null"
 
+  let cleanup_daemon () =
+    if conf_daemon_pidfile#get then
+     try
+       let filename = conf_daemon_pidfile_path#get in
+       Sys.remove filename
+     with _ -> ()
+
   let exit_when_root () =
     (* Change user.. *)
     if conf_daemon_drop_user#get then
@@ -667,7 +674,13 @@ struct
      * to shutdown is to terminate the main function [f]. *)
     if Sys.os_type <> "Win32" then
       ignore (Unix.sigprocmask Unix.SIG_BLOCK [Sys.sigterm; Sys.sigint]);
-    catch (main f) (fun () -> ())
+    let cleanup =
+      if conf_daemon#get && Sys.os_type <> "Win32" then
+        cleanup_daemon
+      else
+        (fun () -> ())
+    in
+    catch (main f) cleanup
 
   let args =
     if Sys.os_type <> "Win32" then
