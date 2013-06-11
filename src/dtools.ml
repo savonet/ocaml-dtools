@@ -18,6 +18,8 @@
   @author Stephane Gimenez
 *)
 
+external mlockall : unit -> unit = "ocaml_dtools_mlockall"
+
 module Conf =
 struct
 
