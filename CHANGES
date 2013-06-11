@@ -1,4 +1,4 @@
-0.3.1 ()
+0.3.1 (08-05-2013)
 =====
 * Added daemon cleanup that removed
   PID file.
