@@ -24,6 +24,11 @@ if test "$W_SYSLOG" != ""; then
 	INC="$INC `$OCAMLFIND query syslog`"
 fi
 
+# Check for mlockall
+AC_CHECK_HEADER(sys/mman.h,
+  [AC_CHECK_FUNC(mlockall,
+    [CFLAGS="$CFLAGS -DUSE_MLOCK"])])
+
 # substitutions to perform
 AC_SUBST(REQUIRES)
 AC_SUBST(SYSLOG_FILES)

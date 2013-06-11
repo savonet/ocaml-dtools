@@ -20,12 +20,13 @@ OCAMLLIBPATH = @CAMLLIBPATH@
 OCAMLBEST = @OCAMLBEST@
 
 THREADS = "yes"
-SOURCES = dtools.ml dtools.mli @SYSLOG_FILES@
+SOURCES = dtools.ml dtools.mli dtools_stubs.c @SYSLOG_FILES@
 RESULT = dtools
-LIBINSTALL_FILES = $(wildcard *.cma *.cmxa *.cmx *.mli *.cmi *.a)
+LIBINSTALL_FILES = $(wildcard *.cma *.cmxa *.cmx *.mli *.cmi *.a *.so)
 OCAMLLDFLAGS = -linkall
 INCDIRS = @INC@
 NO_CUSTOM = yes
+CFLAGS = @CFLAGS@
 OCAMLFLAGS = @OCAMLFLAGS@
 
 all: $(OCAMLBEST)
