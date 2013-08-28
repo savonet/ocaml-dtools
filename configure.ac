@@ -1,4 +1,4 @@
-AC_INIT([ocaml-dtools],[0.3.1],[savonet-users@lists.sourceforge.net])
+AC_INIT([ocaml-dtools],[0.3.2],[savonet-users@lists.sourceforge.net])
 VERSION=$PACKAGE_VERSION
 AC_MSG_RESULT(configuring $PACKAGE_STRING)
 
@@ -23,6 +23,11 @@ if test "$W_SYSLOG" != ""; then
 	REQUIRES="$REQUIRES syslog"
 	INC="$INC `$OCAMLFIND query syslog`"
 fi
+
+# Check for mlockall
+AC_CHECK_HEADER(sys/mman.h,
+  [AC_CHECK_FUNC(mlockall,
+    [CFLAGS="$CFLAGS -DUSE_MLOCK"])])
 
 # substitutions to perform
 AC_SUBST(REQUIRES)

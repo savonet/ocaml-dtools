@@ -5,7 +5,7 @@
 #                             For updates see:
 #                http://www.oefai.at/~markus/ocaml_sources
 #
-#        $Id$
+#        $Id: OCamlMakefile 4512 2007-09-05 14:17:36Z sgimenez $
 #
 ###########################################################################
 
@@ -151,6 +151,7 @@ export CFLAGS
 export CXXFLAGS
 export LDFLAGS
 export CPPFLAGS
+export AR
 
 ifndef RPATH_FLAG
   RPATH_FLAG := -R

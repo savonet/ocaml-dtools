@@ -18,6 +18,8 @@
   @author Stephane Gimenez
 *)
 
+external mlockall : unit -> unit = "ocaml_dtools_mlockall"
+
 module Conf =
 struct
 
@@ -430,6 +432,13 @@ struct
   let conf_daemon_group = 
     Conf.string ~p:(conf_daemon_drop_user#plug "group") 
       ~d:"daemon" "Group used to run the daemon."
+  let conf_daemon_mlockall = 
+    Conf.bool ~p:(conf_daemon#plug "mlockall") ~d:false
+    "Lock process' memory from being swapped. Use only if \
+     expected runtime memory consumption does not exceed \
+     available physical memory. Process need to be started \
+     with required permission (i.e. root). You may thus need \
+     to change_user afterward."
   let conf_trace =
     Conf.bool ~p:(conf#plug "trace") ~d:false
       "dump an initialization trace"
@@ -633,17 +642,10 @@ struct
     (* Reopen usual file descriptor *)
     reopen_in stdin "/dev/null";
     reopen_out stdout "/dev/null";
-    reopen_out stderr "/dev/null"
-
-  let cleanup_daemon () =
-    if conf_daemon_pidfile#get then
-     try
-       let filename = conf_daemon_pidfile_path#get in
-       Sys.remove filename
-     with _ -> ()
-
-  let exit_when_root () =
-    (* Change user.. *)
+    reopen_out stderr "/dev/null";
+    (* Lock memory if told to. *)
+    if conf_daemon_mlockall#get then
+      mlockall();
     if conf_daemon_drop_user#get then
      begin
       let grd = Unix.getgrnam conf_daemon_group#get in
@@ -654,7 +656,16 @@ struct
       let uid = pwd.Unix.pw_uid in
       if Unix.geteuid () <> uid then
         Unix.setuid uid
-     end;
+     end
+
+  let cleanup_daemon () =
+    if conf_daemon_pidfile#get then
+     try
+       let filename = conf_daemon_pidfile_path#get in
+       Sys.remove filename
+     with _ -> ()
+
+  let exit_when_root () =
     let security s = Printf.eprintf "init: security exit, %s\n%!" s in
     if Unix.geteuid () = 0 then
       begin security "root euid (user)."; exit (-1) end;
@@ -662,9 +673,9 @@ struct
       begin security "root egid (group)."; exit (-1) end
 
   let init ?(prohibit_root=false) f =
-    if prohibit_root then exit_when_root ();
     if conf_daemon#get && Sys.os_type <> "Win32" then
       daemonize () ;
+    if prohibit_root then exit_when_root ();
     let signal_h i = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
