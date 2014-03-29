@@ -218,16 +218,6 @@ struct
   let string_of_path p =
     String.concat "." p
 
-  let routes (t : ut) (st : ut) =
-    let rec aux l t =
-      begin match t = st with
-      | true -> [List.rev l]
-      | false ->
-	  List.concat (List.map (fun s -> aux (s :: l) (t#path [s])) t#subs)
-      end
-    in
-    aux [] t
-
   let get_string (t : ut) =
     begin try
        	begin match t#kind with
@@ -371,7 +361,7 @@ struct
 	  then ()
 	  else
 	    begin try conf_set t l with
-	    | Wrong_Conf (x,y) ->
+	    | Wrong_Conf (_,y) ->
 		raise (File_Wrong_Conf (s,!nb,y))
 	    end
 	done
@@ -479,14 +469,14 @@ struct
     stop.depends <- a :: stop.depends;
     a
 
-  let rec exec a =
+  let exec a =
     let log =
       if conf_trace#get then
 	     begin fun s ->
 	      let id = Thread.id (Thread.self ()) in
 	      Printf.printf "init(%i):%-35s@%s\n%!" id a.name s
 	     end
-      else begin fun s -> () end
+      else begin fun _ -> () end
     in
     let rec exec a =
       log "called";
@@ -665,7 +655,7 @@ struct
     if prohibit_root then exit_when_root ();
     if conf_daemon#get && Sys.os_type <> "Win32" then
       daemonize () ;
-    let signal_h i = () in
+    let signal_h _ = () in
     Sys.set_signal Sys.sigterm (Sys.Signal_handle signal_h);
     Sys.set_signal Sys.sigint (Sys.Signal_handle signal_h);
     (* We block signals that would kill us,
@@ -849,7 +839,7 @@ struct
 	    let time = Unix.gettimeofday () in
 	    Printf.ksprintf (fun s -> proceed (time, label lvl ^ " " ^ s))
 	| false ->
-	    Printf.ksprintf (fun s -> ())
+	    Printf.ksprintf (fun _ -> ())
 	end
     end
 
