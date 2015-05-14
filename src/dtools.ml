@@ -533,6 +533,9 @@ struct
   "ocaml-dtools not compiled with ocaml >= 3.11, \
    cannot print stack backtrace"
 
+  (* For the compiler.. *)
+  let () = ignore (get_backtrace ())
+
   open Printexc
 
   let main f () =
