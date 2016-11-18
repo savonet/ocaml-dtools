@@ -848,28 +848,30 @@ struct
 
   let init () =
     let time = Unix.gettimeofday () in
-    if conf_file#get then
-      begin
-	let opts =
-	  [Open_wronly; Open_creat; Open_nonblock]
-	  @ (if conf_file_append#get then [Open_append] else [Open_trunc])
-	in
-	let log_file_path = conf_file_path#get in
-	let log_file_perms = conf_file_perms#get in
-	(* Re-open log file on SIGUSR1 -- for logrotate *)
-        if Sys.os_type <> "Win32" then
-	 Sys.set_signal Sys.sigusr1
-	  (Sys.Signal_handle
-              begin fun _ ->
-		begin match !log_ch with
-		| None -> ()
-		| Some ch -> log_ch := None; close_out ch;
-		end;
-		log_ch := Some (open_out_gen opts log_file_perms log_file_path)
-	      end
-	  );
-	log_ch := Some (open_out_gen opts log_file_perms log_file_path);
-      end;
+    let reopen_log =
+      if conf_file#get then
+        begin
+          let opts =
+	    [Open_wronly; Open_creat; Open_nonblock]
+	    @ (if conf_file_append#get then [Open_append] else [Open_trunc])
+	  in
+	  let log_file_path = conf_file_path#get in
+	  let log_file_perms = conf_file_perms#get in
+	  log_ch := Some (open_out_gen opts log_file_perms log_file_path);
+          (fun _ ->
+            begin
+              match !log_ch with
+                | None -> ()
+                | Some ch -> log_ch := None; close_out ch;
+            end;
+            log_ch := Some (open_out_gen opts log_file_perms log_file_path))
+        end
+      else (fun _ -> ())
+    in
+    (* Re-open log file on SIGUSR1 -- for logrotate *)
+    if Sys.os_type <> "Win32" then
+     Sys.set_signal Sys.sigusr1
+      (Sys.Signal_handle reopen_log);
     mutexify (fun () ->
       print (time, ">>> LOG START");
       begin match !state with

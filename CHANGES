@@ -1,3 +1,7 @@
+0.3.3 ()
+=====
+* Catch USR1 signal regardless of logging configuration.
+
 0.3.2 (03-08-2015)
 =====
 * Dummy github release.
