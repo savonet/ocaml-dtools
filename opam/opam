@@ -1,0 +1,18 @@
+opam-version: "1.2"
+version: "dev"
+maintainer: "Romain Beauxis <toots@rastageeks.org>"
+authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
+homepage: "https://github.com/savonet/ocaml-dtools"
+build: [
+  ["./bootstrap"]
+  ["./configure" "--prefix" prefix]
+  [make clean]
+  [make]
+]
+install: [
+  [make "install"]
+]
+remove: ["ocamlfind" "remove" "dtools"]
+depends: ["ocamlfind"]
+bug-reports: "https://github.com/savonet/ocaml-dtools/issues"
+dev-repo: "https://github.com/savonet/ocaml-dtools.git"
