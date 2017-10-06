@@ -1,3 +1,7 @@
+0.3.4 ()
+=====
+* Added on_change to Conf.t
+
 0.3.3 (11-04-2017)
 =====
 * Catch USR1 signal regardless of logging configuration.

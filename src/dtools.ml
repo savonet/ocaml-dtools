@@ -54,6 +54,7 @@ struct
 	get_d: 'a option;
 	set: 'a -> unit;
 	get: 'a;
+        on_change: ('a -> unit) -> unit
       >
 
   type links = (string * ut) list
@@ -104,6 +105,8 @@ struct
 
     val value_d : 'a option ref = ref d
     val value : 'a option ref = ref None
+
+    val mutable listeners : ('a -> unit) list = []
 
     initializer
       p self#ut;
@@ -185,7 +188,12 @@ struct
       | Some v -> v
       end
 
-    method set (v : 'a) : unit = value := Some v
+    method set (v : 'a) : unit =
+      value := Some v;
+      List.iter (fun fn -> fn v) listeners
+
+    method on_change (fn : 'a -> unit) : unit =
+      listeners <- fn::listeners
 
   end
 

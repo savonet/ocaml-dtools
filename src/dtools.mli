@@ -70,6 +70,7 @@ sig
 	get_d: 'a option;
 	set: 'a -> unit;
 	get: 'a;
+        on_change: ('a -> unit) -> unit
       >
 
   (** Type for 'a keys
