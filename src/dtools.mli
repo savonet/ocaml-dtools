@@ -217,6 +217,8 @@ sig
       Launch the execution of a given init atom.
     *)
 
+  exception Root_prohibited of [`User|`Group|`Both]
+
   val init : ?prohibit_root:bool -> (unit -> unit) -> unit
     (**
       This fuction must be used to launch the main procedure of the

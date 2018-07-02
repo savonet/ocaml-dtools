@@ -642,6 +642,8 @@ struct
        let filename = conf_daemon_pidfile_path#get in
        Sys.remove filename
      with _ -> ()
+  
+  exception Root_prohibited of [`User|`Group|`Both]
 
   let exit_when_root () =
     (* Change user.. *)
@@ -656,11 +658,11 @@ struct
       if Unix.geteuid () <> uid then
         Unix.setuid uid
      end;
-    let security s = Printf.eprintf "init: security exit, %s\n%!" s in
-    if Unix.geteuid () = 0 then
-      begin security "root euid (user)."; exit (-1) end;
-    if Unix.getegid () = 0 then
-      begin security "root egid (group)."; exit (-1) end
+    match Unix.geteuid (), Unix.getegid () with
+      | 0,0 -> raise (Root_prohibited `Both)
+      | 0,_ -> raise (Root_prohibited `User)
+      | _,0 -> raise (Root_prohibited `Group)
+      | _   -> ()
 
   let init ?(prohibit_root=false) f =
     if prohibit_root then exit_when_root ();

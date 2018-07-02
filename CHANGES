@@ -1,3 +1,7 @@
+0.4.0 ()
+=====
+* Raise Root_prohibited exception instead of exiting when running as root.
+
 0.3.4 (08-10-2017)
 =====
 * Added on_change to Conf.t
