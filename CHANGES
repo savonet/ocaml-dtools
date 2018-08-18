@@ -1,4 +1,4 @@
-0.4.0 ()
+0.4.0 (08-18-2018)
 =====
 * Raise Root_prohibited exception instead of exiting when running as root.
 
