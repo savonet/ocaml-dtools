@@ -713,9 +713,6 @@ struct
 
   let log_ch = ref None
 
-  (* Mutex to avoid interlacing logs *)
-  let log_mutex = Mutex.create ()
-
   (* Custom logging methods. *)
   let custom_log : (string, custom_log) Hashtbl.t = Hashtbl.create 0
 
@@ -747,9 +744,6 @@ struct
     Conf.bool ~p:(conf#plug "stdout") ~d:false
       "log to stdout"
 
-  let state : [ `Direct | `Buffer of (float * string) list ] ref =
-    ref (`Buffer [])
-
   let timestamp time =
     begin match conf_unix_timestamps#get with
     | true ->
@@ -763,12 +757,6 @@ struct
           date.Unix.tm_hour
           date.Unix.tm_min
           date.Unix.tm_sec
-    end
-
-  let mutexify f x =
-    Mutex.lock log_mutex;
-    begin try f x; Mutex.unlock log_mutex with
-    | e -> Mutex.unlock log_mutex; raise e
     end
 
   let print (time, str) =
@@ -796,13 +784,62 @@ struct
     let f _ x = x.exec (if x.timestamp then message else str) in
     Hashtbl.iter f custom_log
 
-  let proceed entry =
+  (* Avoid interlacing logs *)
+  let log_mutex = Mutex.create ()
+  let log_condition = Condition.create ()
+  let log_queue = ref (Queue.create ())
+  let log_stop = ref false
+  let log_thread = ref None
+
+  let mutexify f x =
+    Mutex.lock log_mutex;
+    try
+      let ret = f x in
+      Mutex.unlock log_mutex;
+      ret
+    with
+      | e ->
+          Mutex.unlock log_mutex;
+          raise e
+
+  let rotate_queue () =
+    let new_q = Queue.create () in
     mutexify (fun () ->
-      begin match !state with
-      | `Buffer l -> state := `Buffer (entry :: l)
-      | `Direct -> print entry
-      end
-    ) ()
+      let q = !log_queue in
+      log_queue := new_q;
+      q) ()
+
+  let flush_queue () =
+    let rec flush q =
+      Queue.iter print q;
+      let q = rotate_queue () in
+      if not (Queue.is_empty q) then
+        flush q
+    in
+    flush (rotate_queue ())
+
+  let log_thread_fn () =
+    let rec f () =
+      flush_queue ();
+      let log_stop =
+        mutexify (fun () ->
+          if !log_stop then
+            true
+          else
+           begin
+            Condition.wait log_condition log_mutex;
+            !log_stop
+           end) ()
+      in
+      if not log_stop then
+        f ()
+    in
+    f ()
+
+  let proceed =
+    mutexify (fun entry ->
+      Queue.push entry !log_queue;
+      Condition.signal log_condition)
 
   let build path =
     let rec aux p l (t : Conf.ut) =
@@ -882,27 +919,28 @@ struct
     if Sys.os_type <> "Win32" then
      Sys.set_signal Sys.sigusr1
       (Sys.Signal_handle reopen_log);
-    mutexify (fun () ->
-      print (time, ">>> LOG START");
-      begin match !state with
-      | `Buffer l -> List.iter (fun entry -> print entry) (List.rev l)
-      | `Direct -> ()
-      end;
-      state := `Direct
-    ) ()
+    print (time, ">>> LOG START");
+    log_thread := Some (Thread.create log_thread_fn ())
 
   let start = Init.make ~name:"init-log-start" ~before:[Init.start] init
 
   let close () =
     let time = Unix.gettimeofday () in
     mutexify (fun () ->
-      print (time, ">>> LOG END");
-      state := `Buffer [];
-      begin match !log_ch with
+      log_stop := true) ();
+    proceed (time, ">>> LOG END");
+    begin
+     match !log_thread with
+       | None -> ()
+       | Some th ->
+           Condition.signal log_condition;
+           Thread.join th
+    end;
+    match !log_ch with
       | None -> ()
-      | Some ch -> log_ch := None; close_out ch;
-      end
-    ) ()
+      | Some ch ->
+          log_ch := None;
+          close_out ch
 
   let stop = Init.make ~name:"init-log-stop" ~after:[Init.stop] close
 
