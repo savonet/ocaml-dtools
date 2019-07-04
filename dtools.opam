@@ -1,17 +1,20 @@
 opam-version: "2.0"
-version: "dev"
+name: "dtools"
+version: "0.4.1"
 maintainer: "Romain Beauxis <toots@rastageeks.org>"
 authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
 homepage: "https://github.com/savonet/ocaml-dtools"
 bug-reports: "https://github.com/savonet/ocaml-dtools/issues"
-depends: ["ocaml" "ocamlfind"]
-flags: light-uninstall
+depends: [
+  "ocaml"
+  "ocamlfind" {build}
+]
 build: [
-  ["./bootstrap"]
+  ["./bootstrap"] {pinned}
   ["./configure" "--prefix" prefix]
-  [make "clean"]
+  [make "clean"] {pinned}
   [make]
 ]
 install: [make "install"]
-remove: ["ocamlfind" "remove" "dtools"]
+synopsis: "Library providing various helper functions to make daemons"
 dev-repo: "git+https://github.com/savonet/ocaml-dtools.git"
