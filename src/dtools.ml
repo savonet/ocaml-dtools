@@ -791,20 +791,20 @@ struct
   let log_stop = ref false
   let log_thread = ref None
 
-  let mutexify f x =
-    Mutex.lock log_mutex;
+  let mutexify m f x =
+    Mutex.lock m;
     try
       let ret = f x in
-      Mutex.unlock log_mutex;
+      Mutex.unlock m;
       ret
     with
       | e ->
-          Mutex.unlock log_mutex;
+          Mutex.unlock m;
           raise e
 
   let rotate_queue () =
     let new_q = Queue.create () in
-    mutexify (fun () ->
+    mutexify log_mutex (fun () ->
       let q = !log_queue in
       log_queue := new_q;
       q) ()
@@ -822,7 +822,7 @@ struct
     let rec f () =
       flush_queue ();
       let log_stop =
-        mutexify (fun () ->
+        mutexify log_mutex (fun () ->
           if !log_stop then
             true
           else
@@ -836,10 +836,46 @@ struct
     in
     f ()
 
-  let proceed =
-    mutexify (fun entry ->
-      Queue.push entry !log_queue;
-      Condition.signal log_condition)
+  let proceeding           = ref None
+  let proceeding_mutex     = Mutex.create ()
+  let proceeding_condition = Condition.create ()
+
+  let add entry =
+    Queue.push entry !log_queue;
+    Condition.signal log_condition
+
+  let rec proceed entry =
+    let id = Thread.id (Thread.self ()) in
+    let proceeding_id =
+      mutexify proceeding_mutex (fun () ->
+        let ret = !proceeding in 
+        begin
+         match ret with
+           | Some (_, id') when id' <> id ->
+               Condition.wait proceeding_condition proceeding_mutex;
+               proceeding := Some (snd entry, id)
+           | None ->
+               proceeding := Some (snd entry, id)
+           | _ -> ()
+        end;
+        ret) ()
+    in
+    begin
+     match proceeding_id with
+       | Some (msg, id') when id = id' -> 
+          begin
+           let s =
+             Printf.sprintf "WARNING: double logging detected: %S -> %S" msg (snd entry)
+           in
+           Gc.finalise proceed (fst entry, s);
+           Gc.finalise proceed entry
+          end
+      | _ ->
+          mutexify log_mutex add entry
+    end;
+    mutexify proceeding_mutex (fun () ->
+      proceeding := None;
+      Condition.broadcast proceeding_condition) ()
 
   let build path =
     let rec aux p l (t : Conf.ut) =
@@ -926,7 +962,7 @@ struct
 
   let close () =
     let time = Unix.gettimeofday () in
-    mutexify (fun () ->
+    mutexify log_mutex (fun () ->
       log_stop := true) ();
     proceed (time, ">>> LOG END");
     begin
