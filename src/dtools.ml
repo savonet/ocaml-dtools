@@ -836,10 +836,19 @@ struct
     in
     f ()
 
-  let proceed =
-    mutexify (fun entry ->
-      Queue.push entry !log_queue;
-      Condition.signal log_condition)
+  let rec proceed entry =
+    match Mutex.try_lock log_mutex with
+      | true ->
+          begin try
+            Queue.push entry !log_queue;
+            Condition.signal log_condition;
+          with exn ->
+            Mutex.unlock log_mutex;
+            raise exn
+          end;
+          Mutex.unlock log_mutex
+      | false ->
+          Gc.finalise proceed entry
 
   let build path =
     let rec aux p l (t : Conf.ut) =
