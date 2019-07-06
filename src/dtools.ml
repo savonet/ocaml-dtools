@@ -965,6 +965,7 @@ struct
     mutexify log_mutex (fun () ->
       log_stop := true) ();
     proceed (time, ">>> LOG END");
+    Gc.full_major ();
     begin
      match !log_thread with
        | None -> ()
