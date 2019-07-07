@@ -18,6 +18,87 @@
   @author Stephane Gimenez
 *)
 
+module Concurrent_queue =
+struct
+  type 'a pending = ('a Queue.t -> unit) Queue.t
+
+  type 'a t = {
+   queue:    'a Queue.t;
+   pending:  (int, 'a pending) Hashtbl.t;
+   mutex: Mutex.t;
+  }
+
+  let of_queue queue =
+    let pending  = Hashtbl.create 10 in
+    let mutex    = Mutex.create () in
+    {queue;pending;mutex}
+
+  let create () =
+    of_queue (Queue.create ())
+
+  let mutexify m fn =
+    Mutex.lock m;
+    try
+      let ret = fn () in
+      Mutex.unlock m;
+      ret
+    with exn ->
+      Mutex.unlock m;
+      raise exn
+
+  let id () =
+    Thread.id (Thread.self ())
+
+  let rec flush q id =
+    let pending =
+      mutexify q.mutex (fun () ->
+        match Hashtbl.find_opt q.pending id with
+          | Some pending ->
+              Hashtbl.remove q.pending id;
+              pending
+          | None ->
+              assert false)
+    in
+    Queue.iter (fun fn -> exec_n fn q) pending
+  and exec_n fn q =
+    let id = id () in
+    let master =
+      mutexify q.mutex (fun () ->
+        match Hashtbl.find_opt q.pending id with
+          | Some q ->
+              Queue.add fn q;
+              false
+        | None ->
+              Hashtbl.add q.pending id (Queue.create ());
+              true)
+    in
+    if master then
+     begin
+      fn q.queue;
+      flush q id
+     end
+
+  let exec_v fn q =
+    let id = id () in
+    mutexify q.mutex (fun () ->
+      match Hashtbl.find_opt q.pending id with
+        | Some _ ->
+            assert false
+        | None ->
+            Hashtbl.add q.pending id (Queue.create ()));
+    let ret =
+      fn q.queue
+    in
+    flush q id;
+    ret
+
+  let push x = exec_n (Queue.add x)
+
+  let iter fn = exec_n (Queue.iter fn)
+
+  let is_empty q = exec_v Queue.is_empty q
+end
+
 module Conf =
 struct
 
@@ -787,7 +868,7 @@ struct
   (* Avoid interlacing logs *)
   let log_mutex = Mutex.create ()
   let log_condition = Condition.create ()
-  let log_queue = ref (Queue.create ())
+  let log_queue = ref (Concurrent_queue.create ())
   let log_stop = ref false
   let log_thread = ref None
 
@@ -803,7 +884,7 @@ struct
           raise e
 
   let rotate_queue () =
-    let new_q = Queue.create () in
+    let new_q = Concurrent_queue.create () in
     mutexify (fun () ->
       let q = !log_queue in
       log_queue := new_q;
@@ -811,9 +892,9 @@ struct
 
   let flush_queue () =
     let rec flush q =
-      Queue.iter print q;
+      Concurrent_queue.iter print q;
       let q = rotate_queue () in
-      if not (Queue.is_empty q) then
+      if not (Concurrent_queue.is_empty q) then
         flush q
     in
     flush (rotate_queue ())
@@ -838,7 +919,7 @@ struct
 
   let proceed =
     mutexify (fun entry ->
-      Queue.push entry !log_queue;
+      Concurrent_queue.push entry !log_queue;
       Condition.signal log_condition)
 
   let build path =
