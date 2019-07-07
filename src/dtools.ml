@@ -359,7 +359,7 @@ struct
     else raise (Wrong_Conf (s, "syntax error"))
 
   let conf_file t s =
-    let nb = Pervasives.ref 0 in
+    let nb = ref 0 in
     let f = open_in s in
     begin try
 	while true do
@@ -527,7 +527,7 @@ struct
       ignore (Thread.wait_signal [Sys.sigterm; Sys.sigint]);
     with
       | Unix.Unix_error (Unix.EINTR,_,_) -> ()
-      | Sys_error("Thread.wait_signal: Interrupted system call") ->
+      | Sys_error s when s = "Thread.wait_signal: Interrupted system call" ->
           wait_signal ()
     end
 
