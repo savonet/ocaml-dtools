@@ -22,6 +22,7 @@ OCAMLBEST = @OCAMLBEST@
 THREADS = "yes"
 SOURCES = dtools.ml dtools.mli @SYSLOG_FILES@
 RESULT = dtools
+ANNOTATE = true
 LIBINSTALL_FILES = $(wildcard *.cma *.cmxa *.cmx *.mli *.cmi *.a)
 OCAMLLDFLAGS = -linkall
 INCDIRS = @INC@
