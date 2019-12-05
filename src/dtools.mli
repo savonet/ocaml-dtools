@@ -31,16 +31,16 @@ sig
       (** Type for paths between keys *)
 
   type ut =
-      <
-	kind: string option;
-	descr: string;
-	comments: string list;
-	plug: link -> ut -> unit;
-        subs: link list;
-        path: path -> ut;
-        routes: ut -> path list;
-	ut: ut;
-      >
+    <
+      kind: string option;
+      descr: string;
+      comments: string list;
+      plug: link -> ut -> unit;
+      subs: link list;
+      path: path -> ut;
+      routes: ut -> path list;
+      ut: ut;
+    >
 
   (** Type for untyped keys (or keys with unknown type)
       - [kind]: a string describing the type of this key
@@ -53,25 +53,26 @@ sig
       *)
 
   type 'a t =
-      <
-	kind: string option;
-  alias:
-    ?comments:string list ->
-    ?descr:string ->
-    (ut -> unit) -> 'a t;
-	descr: string;
-	comments: string list;
-	plug: link -> ut -> unit;
-        subs: link list;
-        path: path -> ut;
-        routes: ut -> path list;
-	ut: ut;
-	set_d: 'a option -> unit;
-	get_d: 'a option;
-	set: 'a -> unit;
-	get: 'a;
-        on_change: ('a -> unit) -> unit
-      >
+    <
+      kind: string option;
+      alias:
+        ?comments:string list ->
+        ?descr:string ->
+        (ut -> unit) -> 'a t;
+      descr: string;
+      comments: string list;
+      plug: link -> ut -> unit;
+      subs: link list;
+      path: path -> ut;
+      routes: ut -> path list;
+      ut: ut;
+      set_d: 'a option -> unit;
+      get_d: 'a option;
+      set: 'a -> unit;
+      get: 'a;
+      validate: ('a -> bool) -> unit;
+      on_change: ('a -> unit) -> unit
+    >
 
   (** Type for 'a keys
       - [ut]: cast to un untyped key
@@ -96,12 +97,14 @@ sig
     (** Raised on access to a key with a mismatching type *)
   exception Cyclic of ut * ut
     (** Raised on cyclic plug *)
+  exception Invalid_Value of ut
+    (** Raised on invalid value set *)
 
   exception Wrong_Conf of string * string
     (** Raised when bad configuration assignations are encountered  *)
   exception File_Wrong_Conf of string * int * string
     (** Raised when bad configuration assignations are encountered
-	inside configuration files  *)
+    inside configuration files  *)
 
   type 'a builder =
       ?d:'a ->
@@ -254,10 +257,10 @@ module Log :
 sig
 
   type t =
-      <
-	active: int -> bool;
-	f: 'a. int -> ('a, unit, string, unit) format4 -> 'a;
-      >
+    <
+      active: int -> bool;
+      f: 'a. int -> ('a, unit, string, unit) format4 -> 'a;
+    >
     (**
        Type for loggers.
     *)
