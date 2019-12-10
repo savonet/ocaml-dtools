@@ -1,3 +1,7 @@
+0.4.2 (unreleased)
+=====
+* Added `Conf` values validation API, thanks to @CyberDomovoy
+
 0.4.1 (09-11-2018)
 =====
 * Use seperate thread for logging, finer-grained critical section to avoid
