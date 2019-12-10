@@ -188,7 +188,7 @@ sig
     (**
       Define a init atom associated with the given [(unit -> unit)]
       procedure, which eventualy depends on others atoms (these atoms
-      will be executed before the one currently defined) an triggers
+      will be executed before the one currently defined) and triggers
       other atoms (these atoms will be executed after the one currently
       defined). [after] and [before] allow to register the currently
       defined atom in the depend and triggers lists of other atoms.
