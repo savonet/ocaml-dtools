@@ -1,6 +1,0 @@
-name="dtools"
-version="@PACKAGE_VERSION@"
-description="OCaml deamon tools library"
-requires="@REQUIRES@"
-archive(byte) = "dtools.cma"
-archive(native) = "dtools.cmxa"

@@ -1,15 +1,14 @@
-
-  (**************************************************************************)
-  (*  ocaml-dtools                                                          *)
-  (*  Copyright (C) 2003-2010  The Savonet Team                             *)
-  (**************************************************************************)
-  (*  This program is free software; you can redistribute it and/or modify  *)
-  (*  it under the terms of the GNU General Public License as published by  *)
-  (*  the Free Software Foundation; either version 2 of the License, or     *)
-  (*  any later version.                                                    *)
-  (**************************************************************************)
-  (*  Contact: savonet-devl@lists.sourceforge.net                           *)
-  (**************************************************************************)
+(**************************************************************************)
+(*  ocaml-dtools                                                          *)
+(*  Copyright (C) 2003-2010  The Savonet Team                             *)
+(**************************************************************************)
+(*  This program is free software; you can redistribute it and/or modify  *)
+(*  it under the terms of the GNU General Public License as published by  *)
+(*  the Free Software Foundation; either version 2 of the License, or     *)
+(*  any later version.                                                    *)
+(**************************************************************************)
+(*  Contact: savonet-devl@lists.sourceforge.net                           *)
+(**************************************************************************)
 
 (* $Id$ *)
 
@@ -21,26 +20,22 @@
 (**
   Configuration management module.
 *)
-module Conf :
-sig
-
+module Conf : sig
+  (** Type for links between keys *)
   type link = string
-      (** Type for links between keys *)
 
+  (** Type for paths between keys *)
   type path = link list
-      (** Type for paths between keys *)
 
   type ut =
-    <
-      kind: string option;
-      descr: string;
-      comments: string list;
-      plug: link -> ut -> unit;
-      subs: link list;
-      path: path -> ut;
-      routes: ut -> path list;
-      ut: ut;
-    >
+    < kind : string option
+    ; descr : string
+    ; comments : string list
+    ; plug : link -> ut -> unit
+    ; subs : link list
+    ; path : path -> ut
+    ; routes : ut -> path list
+    ; ut : ut >
 
   (** Type for untyped keys (or keys with unknown type)
       - [kind]: a string describing the type of this key
@@ -53,26 +48,21 @@ sig
       *)
 
   type 'a t =
-    <
-      kind: string option;
-      alias:
-        ?comments:string list ->
-        ?descr:string ->
-        (ut -> unit) -> 'a t;
-      descr: string;
-      comments: string list;
-      plug: link -> ut -> unit;
-      subs: link list;
-      path: path -> ut;
-      routes: ut -> path list;
-      ut: ut;
-      set_d: 'a option -> unit;
-      get_d: 'a option;
-      set: 'a -> unit;
-      get: 'a;
-      validate: ('a -> bool) -> unit;
-      on_change: ('a -> unit) -> unit
-    >
+    < kind : string option
+    ; alias : ?comments:string list -> ?descr:string -> (ut -> unit) -> 'a t
+    ; descr : string
+    ; comments : string list
+    ; plug : link -> ut -> unit
+    ; subs : link list
+    ; path : path -> ut
+    ; routes : ut -> path list
+    ; ut : ut
+    ; set_d : 'a option -> unit
+    ; get_d : 'a option
+    ; set : 'a -> unit
+    ; get : 'a
+    ; validate : ('a -> bool) -> unit
+    ; on_change : ('a -> unit) -> unit >
 
   (** Type for 'a keys
       - [ut]: cast to un untyped key
@@ -82,90 +72,102 @@ sig
       - [get]: retrieve the resulting key value
   *)
 
+  (** A set of connections to others keys *)
   type links = (link * ut) list
-      (** A set of connections to others keys *)
 
+  (** Raised on access to an undefined key (without default value) *)
   exception Undefined of ut
-    (** Raised on access to an undefined key (without default value) *)
+
+  (** Raised when an invalid link has been specified *)
   exception Invalid of string
-    (** Raised when an invalid link has been specified *)
+
+  (** Raised when a specified link does not exist *)
   exception Unbound of ut * string
-    (** Raised when a specified link does not exist *)
+
+  (** Raised when a specified link already exist *)
   exception Bound of ut * string
-    (** Raised when a specified link already exist *)
+
+  (** Raised on access to a key with a mismatching type *)
   exception Mismatch of ut
-    (** Raised on access to a key with a mismatching type *)
+
+  (** Raised on cyclic plug *)
   exception Cyclic of ut * ut
-    (** Raised on cyclic plug *)
+
+  (** Raised on invalid value set *)
   exception Invalid_Value of ut
-    (** Raised on invalid value set *)
 
+  (** Raised when bad configuration assignations are encountered  *)
   exception Wrong_Conf of string * string
-    (** Raised when bad configuration assignations are encountered  *)
-  exception File_Wrong_Conf of string * int * string
-    (** Raised when bad configuration assignations are encountered
-    inside configuration files  *)
 
+  (** Raised when bad configuration assignations are encountered
+    inside configuration files  *)
+  exception File_Wrong_Conf of string * int * string
+
+  (** Receipt to build a 'a key *)
   type 'a builder =
-      ?d:'a ->
-      ?p:(ut -> unit) ->
-      ?l:links ->
-      ?comments:string list ->
-      string -> 'a t
-    (** Receipt to build a 'a key *)
+    ?d:'a ->
+    ?p:(ut -> unit) ->
+    ?l:links ->
+    ?comments:string list ->
+    string ->
+    'a t
 
   val unit : unit builder
   val int : int builder
   val float : float builder
   val bool : bool builder
   val string : string builder
-  val list : string list builder
-    (** Some key builders *)
 
+  (** Some key builders *)
+  val list : string list builder
+
+  (** A structural key builder *)
   val void :
     ?p:(ut -> unit) -> ?l:links -> ?comments:string list -> string -> ut
-    (** A structural key builder *)
 
   val as_unit : ut -> unit t
   val as_int : ut -> int t
   val as_float : ut -> float t
   val as_bool : ut -> bool t
   val as_string : ut -> string t
-  val as_list : ut -> string list t
-    (**
+
+  (**
       Casts to specificaly typed keys.
       Raises [Mismatch] on mismatching cast.
     *)
+  val as_list : ut -> string list t
 
+  (** Convert a dot separated string to a path *)
   val path_of_string : string -> path
-    (** Convert a dot separated string to a path *)
+
+  (** Convert a path to a dot separated string *)
   val string_of_path : path -> string
-    (** Convert a path to a dot separated string *)
 
+  (** Generate a description table of a (sub)key *)
   val descr : ?prefix:path -> ut -> string
-    (** Generate a description table of a (sub)key *)
-  val dump :  ?prefix:path -> ut -> string
-    (** Dump the configuration table for a (sub)key *)
 
-  val conf_set : ut -> string -> unit
-    (**
+  (** Dump the configuration table for a (sub)key *)
+  val dump : ?prefix:path -> ut -> string
+
+  (**
       Add a value to the configuration keys, according to the given
       correctly formated string: "type key :value"
       Raises [Wrong_Conf] in badly formated cases.
     *)
-  val conf_file : ut -> string -> unit
-    (**
+  val conf_set : ut -> string -> unit
+
+  (**
       Read configuration values from the file associated with the given
       filename.
       Raises [File_Wrong_Conf] with filename line and and error message
       in case of a bad configuration file.
     *)
+  val conf_file : ut -> string -> unit
 
-  val args : ut -> (string list * Arg.spec * string) list
-    (**
+  (**
       A set of command line options to be used with the Arg module.
     *)
-
+  val args : ut -> (string list * Arg.spec * string) list
 end
 
 (**
@@ -173,22 +175,16 @@ end
   Allow to define procedures that must be executed at start up, and
   procedures that are to be executed at exit to have a clean quit.
 *)
-module Init :
-sig
-
+module Init : sig
   type t
 
+  (** Root start atom *)
   val start : t
-    (** Root start atom *)
-  val stop : t
-    (** Root stop atom *)
 
-  val make :
-    ?name:string ->
-    ?depends:(t list) -> ?triggers:(t list) ->
-    ?after:(t list) -> ?before:(t list) ->
-    (unit -> unit) -> t
-    (**
+  (** Root stop atom *)
+  val stop : t
+
+  (**
       Define a init atom associated with the given [(unit -> unit)]
       procedure, which eventualy depends on others atoms (these atoms
       will be executed before the one currently defined) and triggers
@@ -196,34 +192,47 @@ sig
       defined). [after] and [before] allow to register the currently
       defined atom in the depend and triggers lists of other atoms.
     *)
-
-  val at_start :
+  val make :
     ?name:string ->
-    ?depends:(t list) -> ?triggers:(t list) ->
-    ?after:(t list) -> ?before:(t list) ->
-    (unit -> unit) -> t
-    (**
+    ?depends:t list ->
+    ?triggers:t list ->
+    ?after:t list ->
+    ?before:t list ->
+    (unit -> unit) ->
+    t
+
+  (**
       Same as [make] plus a shortcut for "after Init.start".
     *)
-
-  val at_stop :
+  val at_start :
     ?name:string ->
-    ?depends:(t list) -> ?triggers:(t list) ->
-    ?after:(t list) -> ?before:(t list) ->
-    (unit -> unit) -> t
-    (**
+    ?depends:t list ->
+    ?triggers:t list ->
+    ?after:t list ->
+    ?before:t list ->
+    (unit -> unit) ->
+    t
+
+  (**
       Same as [make] plus a shortcut for "before Init.stop".
     *)
+  val at_stop :
+    ?name:string ->
+    ?depends:t list ->
+    ?triggers:t list ->
+    ?after:t list ->
+    ?before:t list ->
+    (unit -> unit) ->
+    t
 
-  val exec : t -> unit
-    (**
+  (**
       Launch the execution of a given init atom.
     *)
+  val exec : t -> unit
 
-  exception Root_prohibited of [`User|`Group|`Both]
+  exception Root_prohibited of [ `User | `Group | `Both ]
 
-  val init : ?prohibit_root:bool -> (unit -> unit) -> unit
-    (**
+  (**
       This fuction must be used to launch the main procedure of the
       program. It first execute the registered start atoms, then call
       the main procedure, then execute the registered stop atoms.
@@ -233,6 +242,7 @@ sig
       When invoqued with [~prohibit_root:true], it checks for root access
       rights (euid, egid) and exit in this case.
     *)
+  val init : ?prohibit_root:bool -> (unit -> unit) -> unit
 
   exception StartError of exn
   exception StopError of exn
@@ -245,56 +255,46 @@ sig
   val conf_trace : bool Conf.t
   val conf_catch_exn : bool Conf.t
 
-  val args : (string list * Arg.spec * string) list
-    (**
+  (**
       A set of command line options to be used with the Arg module.
     *)
-
+  val args : (string list * Arg.spec * string) list
 end
 
-
-module Log :
-sig
-
-  type t =
-    <
-      active: int -> bool;
-      f: 'a. int -> ('a, unit, string, unit) format4 -> 'a;
-    >
-    (**
+module Log : sig
+  (**
        Type for loggers.
     *)
+  type t =
+    < active : int -> bool
+    ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a >
 
-  type custom_log =
-    {
-      timestamp : bool ;
-      exec      : string -> unit
-    }
+  type custom_log = { timestamp : bool; exec : string -> unit }
 
-  val add_custom_log : string -> custom_log -> unit
-    (**
+  (**
       Add a custom logging functions. 
     *)
+  val add_custom_log : string -> custom_log -> unit
 
-  val rm_custom_log : string -> unit
-    (**
+  (**
       Remove a custom logging functions.    
     *)
+  val rm_custom_log : string -> unit
 
-  val make : Conf.path -> t
-    (**
+  (**
       Make a logger labeled according to the given path.
     *)
+  val make : Conf.path -> t
 
-  val start : Init.t
-    (**
+  (**
       An atom that starts the logging.
     *)
+  val start : Init.t
 
-  val stop : Init.t
-    (**
+  (**
       An atom that stops the logging.
     *)
+  val stop : Init.t
 
   val conf : Conf.ut
   val conf_level : int Conf.t
@@ -305,9 +305,8 @@ sig
   val conf_file_append : bool Conf.t
   val conf_file_perms : int Conf.t
 
-  val args : (string list * Arg.spec * string) list
-    (**
+  (**
       A set of command line options to be used with the Arg module.
     *)
-
+  val args : (string list * Arg.spec * string) list
 end

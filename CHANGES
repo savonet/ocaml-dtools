@@ -1,6 +1,7 @@
 0.4.2 (unreleased)
 =====
 * Added `Conf` values validation API, thanks to @CyberDomovoy
+* Switched to dune
 
 0.4.1 (09-11-2018)
 =====
