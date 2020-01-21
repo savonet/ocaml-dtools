@@ -13,6 +13,6 @@ jobs:
     - name: Setup OCaml
       uses: avsm/setup-ocaml@v1.0
     - name: Run tests locally
-      run: dune runtest
+      run: eval $(opam env) && dune runtest
     - name: Install locally
       run: opam install -y .
