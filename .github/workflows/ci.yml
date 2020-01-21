@@ -12,5 +12,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Setup OCaml
       uses: avsm/setup-ocaml@v1.0
+    - name: Install syslog
+      run: opam install -y syslog
+      if: matrix.os != 'windows-latest'
     - name: Install locally
       run: opam install -y .
