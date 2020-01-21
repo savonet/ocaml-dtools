@@ -5,7 +5,7 @@ Author: Gimenez Stéphane
 Email: savonet-users@lists.sourceforge.net
 Homepage: http://savonet.sourceforge.net/
 
-Copyright (c) 2003-2006 the Savonet Team.
+Copyright (c) 2003-2020 the Savonet Team.
 
 
 Dependencies
@@ -18,18 +18,32 @@ http://www.ocaml-programming.de/packages/)
 Installation
 ============
 
-To compile the program type:
+This module is provided as part of the [opam](http://opam.ocaml.org/packages/dtools/). Recommended
+installation method is via `opam`:
 
-./configure
-make
+```
+opam install dtools
+```
 
-You can set specific build options with the configure script, see:
+This installs the latest released version of this module.
 
-./configure --help
+To compile the code from this repository, type:
 
-To install it, type as root:
+```
+dune build
+```
 
-make install
+To install the code from this repository using `opam`, type:
+
+```
+opam install .
+```
+
+To instal the code from this repository using `dune`:
+
+```
+dune install
+```
 
 License
 =======
