@@ -1,4 +1,4 @@
-0.4.2 (unreleased)
+0.4.2 (27-02-2020)
 =====
 * Added `Conf` values validation API, thanks to @CyberDomovoy
 * Switched to dune
