@@ -1,7 +1,7 @@
 (lang dune 2.0)
 
 (name dtools)
-(version 0.4.2)
+(version 0.4.3)
 (source (github savonet/ocaml-dtools))
 (license GPL)
 (authors "The Savonet Team <savonet-users@lists.sourceforge.net>")

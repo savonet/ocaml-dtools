@@ -787,7 +787,10 @@ module Log = struct
         match self#active lvl with
           | true ->
               let time = Unix.gettimeofday () in
-              Printf.ksprintf (fun s -> proceed (time, label lvl ^ " " ^ s))
+              Printf.ksprintf (fun s ->
+                  List.iter
+                    (fun s -> proceed (time, label lvl ^ " " ^ s))
+                    (String.split_on_char '\n' s))
           | false -> Printf.ksprintf (fun _ -> ())
     end
 
