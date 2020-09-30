@@ -1,6 +1,7 @@
 0.4.3 (unreleased)
 =====
 * Split log string by lines before printing.
+* Cleanup daemon args.
 
 0.4.2 (27-02-2020)
 =====

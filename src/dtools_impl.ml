@@ -623,9 +623,9 @@ module Init = struct
   let args =
     if Sys.os_type <> "Win32" then
       [
-        ( ["--daemon"; "-d"],
+        ( ["-d"; "--daemon"],
           Arg.Unit (fun () -> conf_daemon#set true),
-          "run in daemon mode" );
+          "Run in daemon mode." );
       ]
     else []
 end
