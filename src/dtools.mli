@@ -251,7 +251,6 @@ module Init : sig
   val conf_daemon : bool Conf.t
   val conf_daemon_pidfile : bool Conf.t
   val conf_daemon_pidfile_path : string Conf.t
-  val conf_concurrent : bool Conf.t
   val conf_trace : bool Conf.t
   val conf_catch_exn : bool Conf.t
 

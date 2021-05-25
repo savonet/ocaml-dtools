@@ -2,6 +2,7 @@
 =====
 * Split log string by lines before printing.
 * Cleanup daemon args.
+* Remove `conf_concurrent`
 
 0.4.2 (27-02-2020)
 =====

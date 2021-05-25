@@ -394,10 +394,6 @@ module Init = struct
   let conf_trace =
     Conf.bool ~p:(conf#plug "trace") ~d:false "dump an initialization trace"
 
-  let conf_concurrent =
-    Conf.bool ~p:(conf#plug "concurrent") ~d:false
-      "run initialization using concurrent threads"
-
   let conf_catch_exn =
     Conf.bool ~p:(conf#plug "catch_exn") ~d:true
       "catch exceptions, use false to backtrace exceptions"
@@ -448,13 +444,13 @@ module Init = struct
           a.launched <- true;
           log "start";
           log "start-depends";
-          mult_exec a.depends;
+          List.iter exec a.depends;
           log "stop-depends";
           log "start-atom";
           a.f ();
           log "stop-atom";
           log "start-triggers";
-          mult_exec a.triggers;
+          List.iter exec a.triggers;
           log "stop-triggers";
           log "stop"
         end;
@@ -463,16 +459,6 @@ module Init = struct
       with e ->
         Mutex.unlock a.mutex;
         raise e
-    and mult_exec l =
-      match conf_concurrent#get with
-        | true ->
-            let ask x =
-              log (Printf.sprintf "exec %s" x.name);
-              Thread.create exec x
-            in
-            let threads = List.map ask l in
-            List.iter Thread.join threads
-        | false -> List.iter exec l
     in
     exec a
 
