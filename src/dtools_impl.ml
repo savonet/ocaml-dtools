@@ -376,6 +376,17 @@ module Init = struct
   let conf_daemon_pidfile_path =
     Conf.string ~p:(conf_daemon_pidfile#plug "path") "path to pidfile"
 
+  let conf_daemon_pidfile_perms =
+    Conf.int ~d:0o640
+      ~p:(conf_daemon_pidfile#plug "perms")
+      "Unix file permissions for pidfile"
+
+  let conf_daemon_pidfile_owner =
+    Conf.string ~p:(conf_daemon_pidfile#plug "owner") "Pidfile owner"
+
+  let conf_daemon_pidfile_group =
+    Conf.string ~p:(conf_daemon_pidfile#plug "group") "Pidfile group"
+
   let conf_daemon_drop_user =
     Conf.bool
       ~p:(conf_daemon#plug "change_user")
@@ -552,7 +563,31 @@ module Init = struct
     if conf_daemon_pidfile#get then begin
       (* Write PID to file *)
       let filename = conf_daemon_pidfile_path#get in
-      let f = open_out filename in
+      let f =
+        open_out_gen
+          [Open_wronly; Open_creat; Open_trunc]
+          conf_daemon_pidfile_perms#get filename
+      in
+      if Sys.os_type = "Unix" then (
+        let uid =
+          match conf_daemon_pidfile_owner#get_d with
+            | None -> Unix.getuid ()
+            | Some user -> (
+                try
+                  let pw = Unix.getpwnam user in
+                  pw.Unix.pw_uid
+                with Not_found -> Unix.getuid () )
+        in
+        let gid =
+          match conf_daemon_pidfile_group#get_d with
+            | None -> Unix.getgid ()
+            | Some group -> (
+                try
+                  let gr = Unix.getgrnam group in
+                  gr.Unix.gr_gid
+                with Not_found -> Unix.getgid () )
+        in
+        Unix.chown filename uid gid );
       let pid = Unix.getpid () in
       output_string f (string_of_int pid);
       output_char f '\n';
