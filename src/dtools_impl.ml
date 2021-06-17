@@ -379,7 +379,7 @@ module Init = struct
   let conf_daemon_pidfile_perms =
     Conf.int ~d:0o640
       ~p:(conf_daemon_pidfile#plug "perms")
-      "Unix file permissions for pidfile"
+      "Unix file permissions for pidfile. Use 0oxxx notation!"
 
   let conf_daemon_pidfile_owner =
     Conf.string ~p:(conf_daemon_pidfile#plug "owner") "Pidfile owner"
