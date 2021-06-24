@@ -376,6 +376,11 @@ module Init = struct
   let conf_daemon_pidfile_path =
     Conf.string ~p:(conf_daemon_pidfile#plug "path") "path to pidfile"
 
+  let conf_daemon_pidfile_perms =
+    Conf.int ~d:0o640
+      ~p:(conf_daemon_pidfile#plug "perms")
+      "Unix file permissions for pidfile. Default: `0o640`."
+
   let conf_daemon_drop_user =
     Conf.bool
       ~p:(conf_daemon#plug "change_user")
@@ -552,7 +557,11 @@ module Init = struct
     if conf_daemon_pidfile#get then begin
       (* Write PID to file *)
       let filename = conf_daemon_pidfile_path#get in
-      let f = open_out filename in
+      let f =
+        open_out_gen
+          [Open_wronly; Open_creat; Open_trunc]
+          conf_daemon_pidfile_perms#get filename
+      in
       let pid = Unix.getpid () in
       output_string f (string_of_int pid);
       output_char f '\n';
