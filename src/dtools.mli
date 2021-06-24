@@ -252,8 +252,6 @@ module Init : sig
   val conf_daemon_pidfile : bool Conf.t
   val conf_daemon_pidfile_path : string Conf.t
   val conf_daemon_pidfile_perms : int Conf.t
-  val conf_daemon_pidfile_owner : string Conf.t
-  val conf_daemon_pidfile_group : string Conf.t
   val conf_trace : bool Conf.t
   val conf_catch_exn : bool Conf.t
 
