@@ -1,8 +1,9 @@
-0.4.3 (unreleased)
+0.4.3 (24-06-2021)
 =====
 * Split log string by lines before printing.
 * Cleanup daemon args.
 * Remove `conf_concurrent`
+* Added `conf_daemon_pidfile_perms`
 
 0.4.2 (27-02-2020)
 =====
