@@ -628,6 +628,7 @@ end
 module Log = struct
   type t =
     < active : int -> bool
+    ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a >
 
   type custom_log = { timestamp : bool; exec : string -> unit }
@@ -764,6 +765,8 @@ module Log = struct
     let path_str = Conf.string_of_path path in
     object (self : t)
       val label = fun lvl -> "[" ^ path_str ^ ":" ^ string_of_int lvl ^ "]"
+
+      method path = path
 
       method active lvl =
         let rec aux l =

@@ -1,3 +1,7 @@
+0.4.4 (unreleased)
+=====
+* Export Log object's path.
+
 0.4.3 (24-06-2021)
 =====
 * Split log string by lines before printing.

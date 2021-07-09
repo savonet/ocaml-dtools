@@ -267,6 +267,7 @@ module Log : sig
     *)
   type t =
     < active : int -> bool
+    ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a >
 
   type custom_log = { timestamp : bool; exec : string -> unit }
