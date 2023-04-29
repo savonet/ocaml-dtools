@@ -1,3 +1,7 @@
+0.4.5 (unreleased)
+=====
+* Add optional log pre-process function.
+
 0.4.4 (10-07-2021)
 =====
 * Export Log object's path.

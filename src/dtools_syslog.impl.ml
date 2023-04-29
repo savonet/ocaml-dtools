@@ -38,7 +38,7 @@ let () =
       let log = Syslog.openlog ~facility program in
       logging := Some log;
       let exec s = Syslog.syslog log `LOG_INFO s in
-      Log.add_custom_log program { Log.timestamp = false; exec } )
+      Log.add_custom_log program { Log.timestamp = false; exec })
   in
   let stop () = match !logging with Some x -> Syslog.closelog x | _ -> () in
   ignore (Init.at_start ~before:[Log.start] start);

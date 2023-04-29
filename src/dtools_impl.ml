@@ -83,24 +83,17 @@ module Conf = struct
       ?(l : links = []) ?(comments : string list = []) descr : 'a t =
     object (self)
       val kind : string option = kind
-
       val mutable descr : string = descr
-
       val mutable comments : string list = comments
-
       val mutable links : links = []
-
       val value_d : 'a option ref = ref d
-
       val value : 'a option ref = ref None
-
       val mutable validators : ('a -> bool) list = []
-
       val mutable listeners : ('a -> unit) list = []
 
       initializer
-      p self#ut;
-      List.iter (fun (s, t) -> self#plug s t) l
+        p self#ut;
+        List.iter (fun (s, t) -> self#plug s t) l
 
       method subs = List.sort compare (List.map fst links)
 
@@ -123,13 +116,9 @@ module Conf = struct
         aux [] self#ut
 
       method kind = kind
-
       method descr = descr
-
       method private set_descr new_descr = descr <- new_descr
-
       method comments = comments
-
       method private set_comments new_comments = comments <- new_comments
 
       method plug s t =
@@ -151,9 +140,7 @@ module Conf = struct
         key
 
       method ut = (self :> ut)
-
       method get_d : 'a option = !value_d
-
       method set_d (v : 'a option) : unit = value_d := v
 
       method get : 'a =
@@ -161,7 +148,7 @@ module Conf = struct
           | None -> (
               match !value_d with
                 | None -> raise (Undefined self#ut)
-                | Some v -> v )
+                | Some v -> v)
           | Some v -> v
 
       method set (v : 'a) : unit =
@@ -172,7 +159,6 @@ module Conf = struct
         List.iter (fun fn -> fn v) listeners
 
       method validate (fn : 'a -> bool) : unit = validators <- fn :: validators
-
       method on_change (fn : 'a -> unit) : unit = listeners <- fn :: listeners
     end
 
@@ -233,22 +219,22 @@ module Conf = struct
       Printf.sprintf "## %s\n" t#descr
       ^ begin
           match get_d_string t with
-          | None -> ""
-          | Some d -> Printf.sprintf "# default :%s\n" d
+            | None -> ""
+            | Some d -> Printf.sprintf "# default :%s\n" d
         end
       ^ begin
           match (t#kind, get_string t) with
-          | Some k, None -> Printf.sprintf "#%s\t%-30s\n" k prefix
-          | Some k, Some p -> Printf.sprintf "%s\t%-30s :%s\n" k prefix p
-          | _ -> ""
+            | Some k, None -> Printf.sprintf "#%s\t%-30s\n" k prefix
+            | Some k, Some p -> Printf.sprintf "%s\t%-30s :%s\n" k prefix p
+            | _ -> ""
         end
       ^ begin
           match t#comments with
-          | [] -> ""
-          | l ->
-              "# comments:\n"
-              ^ String.concat ""
-                  (List.map (fun s -> Printf.sprintf "#  %s\n" s) l)
+            | [] -> ""
+            | l ->
+                "# comments:\n"
+                ^ String.concat ""
+                    (List.map (fun s -> Printf.sprintf "#  %s\n" s) l)
         end
       ^ "\n" ^ String.concat "" subs
     in
@@ -260,14 +246,14 @@ module Conf = struct
       let subs = List.map (function s -> aux (p s) (t#path [s])) t#subs in
       begin
         match t#kind with
-        | Some k -> (
-            match (get_d_string t, get_string t) with
-              | None, None -> Printf.sprintf "#%s\t%-30s\n" k prefix
-              | Some p, None -> Printf.sprintf "#%s\t%-30s :%s\n" k prefix p
-              | Some p, Some p' when p' = p ->
-                  Printf.sprintf "#%s\t%-30s :%s\n" k prefix p
-              | _, Some p -> Printf.sprintf "%s\t%-30s :%s\n" k prefix p )
-        | _ -> ""
+          | Some k -> (
+              match (get_d_string t, get_string t) with
+                | None, None -> Printf.sprintf "#%s\t%-30s\n" k prefix
+                | Some p, None -> Printf.sprintf "#%s\t%-30s :%s\n" k prefix p
+                | Some p, Some p' when p' = p ->
+                    Printf.sprintf "#%s\t%-30s :%s\n" k prefix p
+                | _, Some p -> Printf.sprintf "%s\t%-30s :%s\n" k prefix p)
+          | _ -> ""
       end
       ^ String.concat "" subs
     in
@@ -283,7 +269,7 @@ module Conf = struct
         | "unit" -> (
             match val2 = "" with
               | false -> raise (Wrong_Conf (s, "unit expected"))
-              | true -> (as_unit st)#set () )
+              | true -> (as_unit st)#set ())
         | "int" ->
             let i =
               try int_of_string val2
@@ -311,7 +297,7 @@ module Conf = struct
         | "list" ->
             let l = Str.split list_sep_regexp val2 in
             (as_list st)#set l
-        | _ -> raise (Wrong_Conf (s, "unknown type")) )
+        | _ -> raise (Wrong_Conf (s, "unknown type")))
     else raise (Wrong_Conf (s, "syntax error"))
 
   let conf_file t s =
@@ -577,7 +563,7 @@ module Init = struct
       try
         let filename = conf_daemon_pidfile_path#get in
         Sys.remove filename
-      with _ -> () )
+      with _ -> ())
 
   exception Root_prohibited of [ `User | `Group | `Both ]
 
@@ -629,7 +615,12 @@ module Log = struct
   type t =
     < active : int -> bool
     ; path : Conf.path
-    ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a >
+    ; f :
+        'a.
+        ?pre_process:(string -> string) ->
+        int ->
+        ('a, unit, string, unit) format4 ->
+        'a >
 
   type custom_log = { timestamp : bool; exec : string -> unit }
 
@@ -675,16 +666,16 @@ module Log = struct
     let message = Printf.sprintf "%s %s" timestamp str in
     begin
       match to_stdout || to_file with
-      | true ->
-          let do_stdout () = Printf.printf "%s\n%!" message in
-          let do_file () =
-            match !log_ch with
-              | None -> ()
-              | Some ch -> Printf.fprintf ch "%s\n%!" message
-          in
-          if to_stdout then do_stdout ();
-          if to_file then do_file ()
-      | false -> ()
+        | true ->
+            let do_stdout () = Printf.printf "%s\n%!" message in
+            let do_file () =
+              match !log_ch with
+                | None -> ()
+                | Some ch -> Printf.fprintf ch "%s\n%!" message
+            in
+            if to_stdout then do_stdout ();
+            if to_file then do_file ()
+        | false -> ()
     end;
     let f _ x = x.exec (if x.timestamp then message else str) in
     Hashtbl.iter f custom_log
@@ -765,7 +756,6 @@ module Log = struct
     let path_str = Conf.string_of_path path in
     object (self : t)
       val label = fun lvl -> "[" ^ path_str ^ ":" ^ string_of_int lvl ^ "]"
-
       method path = path
 
       method active lvl =
@@ -777,15 +767,16 @@ module Log = struct
                   | Some i -> Some i
                   | None -> (
                       try Some (Conf.as_int t)#get
-                      with Conf.Undefined _ -> None ) )
+                      with Conf.Undefined _ -> None))
         in
         match aux confs with None -> false | Some i -> i >= lvl
 
-      method f lvl =
+      method f ?(pre_process = fun x -> x) lvl =
         match self#active lvl with
           | true ->
               let time = Unix.gettimeofday () in
               Printf.ksprintf (fun s ->
+                  let s = pre_process s in
                   List.iter
                     (fun s -> proceed (time, label lvl ^ " " ^ s))
                     (String.split_on_char '\n' s))
@@ -806,10 +797,10 @@ module Log = struct
         fun _ ->
           begin
             match !log_ch with
-            | None -> ()
-            | Some ch ->
-                log_ch := None;
-                close_out ch
+              | None -> ()
+              | Some ch ->
+                  log_ch := None;
+                  close_out ch
           end;
           log_ch := Some (open_out_gen opts log_file_perms log_file_path)
       end
@@ -829,10 +820,10 @@ module Log = struct
     proceed (time, ">>> LOG END");
     begin
       match !log_thread with
-      | None -> ()
-      | Some th ->
-          Condition.signal log_condition;
-          Thread.join th
+        | None -> ()
+        | Some th ->
+            Condition.signal log_condition;
+            Thread.join th
     end;
     match !log_ch with
       | None -> ()
