@@ -262,6 +262,13 @@ module Init : sig
 end
 
 module Log : sig
+  type entry = {
+    time : float;
+    label : string option;
+    level : int option;
+    log : string;
+  }
+
   (**
        Type for loggers.
     *)
@@ -271,7 +278,7 @@ module Log : sig
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
     ; g :
         'a.
-        ?pre_process:(string -> string) ->
+        ?colorize:(entry -> entry) ->
         int ->
         ('a, unit, string, unit) format4 ->
         'a >

@@ -612,13 +612,22 @@ module Init = struct
 end
 
 module Log = struct
+  type entry = {
+    time : float;
+    label : string option;
+    level : int option;
+    log : string;
+  }
+
+  type pending_entry = { colorize : entry -> entry; entry : entry }
+
   type t =
     < active : int -> bool
     ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
     ; g :
         'a.
-        ?pre_process:(string -> string) ->
+        ?colorize:(entry -> entry) ->
         int ->
         ('a, unit, string, unit) format4 ->
         'a >
@@ -660,25 +669,37 @@ module Log = struct
             (date.Unix.tm_year + 1900) (date.Unix.tm_mon + 1) date.Unix.tm_mday
             date.Unix.tm_hour date.Unix.tm_min date.Unix.tm_sec
 
-  let print (time, str) =
+  let message ?(show_timestamp = true) { time; label; level; log } =
+    let label =
+      match (label, level) with
+        | None, None -> ""
+        | Some l, None -> Printf.sprintf "[%s] " l
+        | None, Some d -> Printf.sprintf "[%d] " d
+        | Some l, Some d -> Printf.sprintf "[%s:%d] " l d
+    in
+    let str = label ^ log in
+    let timestamp = if show_timestamp then timestamp time ^ " " else "" in
+    Printf.sprintf "%s%s" timestamp str
+
+  let print { colorize; entry } =
     let to_stdout = conf_stdout#get in
     let to_file = !log_ch <> None in
-    let timestamp = timestamp time in
-    let message = Printf.sprintf "%s %s" timestamp str in
     begin
       match to_stdout || to_file with
         | true ->
-            let do_stdout () = Printf.printf "%s\n%!" message in
+            let do_stdout () =
+              Printf.printf "%s\n%!" (message (colorize entry))
+            in
             let do_file () =
               match !log_ch with
                 | None -> ()
-                | Some ch -> Printf.fprintf ch "%s\n%!" message
+                | Some ch -> Printf.fprintf ch "%s\n%!" (message entry)
             in
             if to_stdout then do_stdout ();
             if to_file then do_file ()
         | false -> ()
     end;
-    let f _ x = x.exec (if x.timestamp then message else str) in
+    let f _ x = x.exec (message ~show_timestamp:x.timestamp entry) in
     Hashtbl.iter f custom_log
 
   (* Avoid interlacing logs *)
@@ -756,10 +777,9 @@ module Log = struct
     let confs = build path in
     let path_str = Conf.string_of_path path in
     object (self : t)
-      val label = fun lvl -> "[" ^ path_str ^ ":" ^ string_of_int lvl ^ "]"
       method path = path
 
-      method active lvl =
+      method active level =
         let rec aux l =
           match l with
             | [] -> None
@@ -770,20 +790,30 @@ module Log = struct
                       try Some (Conf.as_int t)#get
                       with Conf.Undefined _ -> None))
         in
-        match aux confs with None -> false | Some i -> i >= lvl
+        match aux confs with None -> false | Some i -> i >= level
 
-      method g ?(pre_process = fun x -> x) lvl =
-        match self#active lvl with
+      method g ?(colorize = fun x -> x) level =
+        match self#active level with
           | true ->
               let time = Unix.gettimeofday () in
               Printf.ksprintf (fun s ->
-                  let s = pre_process s in
                   List.iter
-                    (fun s -> proceed (time, label lvl ^ " " ^ s))
+                    (fun log ->
+                      proceed
+                        {
+                          colorize;
+                          entry =
+                            {
+                              time;
+                              label = Some path_str;
+                              level = Some level;
+                              log;
+                            };
+                        })
                     (String.split_on_char '\n' s))
           | false -> Printf.ksprintf (fun _ -> ())
 
-      method f lvl = self#g ?pre_process:None lvl
+      method f level = self#g ?colorize:None level
     end
 
   let init () =
@@ -812,7 +842,11 @@ module Log = struct
     (* Re-open log file on SIGUSR1 -- for logrotate *)
     if Sys.os_type <> "Win32" then
       Sys.set_signal Sys.sigusr1 (Sys.Signal_handle reopen_log);
-    print (time, ">>> LOG START");
+    print
+      {
+        colorize = (fun x -> x);
+        entry = { time; level = None; label = None; log = ">>> LOG START" };
+      };
     log_thread := Some (Thread.create log_thread_fn ())
 
   let start = Init.make ~name:"init-log-start" ~before:[Init.start] init
@@ -820,7 +854,11 @@ module Log = struct
   let close () =
     let time = Unix.gettimeofday () in
     mutexify (fun () -> log_stop := true) ();
-    proceed (time, ">>> LOG END");
+    proceed
+      {
+        colorize = (fun x -> x);
+        entry = { time; level = None; label = None; log = ">>> LOG END" };
+      };
     begin
       match !log_thread with
         | None -> ()
