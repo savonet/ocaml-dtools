@@ -268,7 +268,8 @@ module Log : sig
   type t =
     < active : int -> bool
     ; path : Conf.path
-    ; f :
+    ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
+    ; g :
         'a.
         ?pre_process:(string -> string) ->
         int ->

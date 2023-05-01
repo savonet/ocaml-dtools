@@ -615,7 +615,8 @@ module Log = struct
   type t =
     < active : int -> bool
     ; path : Conf.path
-    ; f :
+    ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
+    ; g :
         'a.
         ?pre_process:(string -> string) ->
         int ->
@@ -771,7 +772,7 @@ module Log = struct
         in
         match aux confs with None -> false | Some i -> i >= lvl
 
-      method f ?(pre_process = fun x -> x) lvl =
+      method g ?(pre_process = fun x -> x) lvl =
         match self#active lvl with
           | true ->
               let time = Unix.gettimeofday () in
@@ -781,6 +782,8 @@ module Log = struct
                     (fun s -> proceed (time, label lvl ^ " " ^ s))
                     (String.split_on_char '\n' s))
           | false -> Printf.ksprintf (fun _ -> ())
+
+      method f lvl = self#g ?pre_process:None lvl
     end
 
   let init () =
