@@ -1,9 +1,7 @@
 #!/bin/env ocaml
 
-;;
 #load "str.cma"
 
-;;
 #load "unix.cma"
 
 let max_level = ref 9
@@ -21,7 +19,7 @@ let parse s =
     let label = Str.matched_group 2 s in
     let level = int_of_string (Str.matched_group 3 s) in
     let str = Str.matched_group 4 s in
-    Some (time, label, level, str) )
+    Some (time, label, level, str))
   else None
 
 let rec disp file =
@@ -30,20 +28,20 @@ let rec disp file =
       let l = input_line f in
       begin
         match parse l with
-        | Some (time, label, level, str) ->
-            let tm = Unix.localtime time in
-            if level <= !max_level then begin
-              if !ddate then
-                Printf.printf "%04d-%02d-%02d " (tm.Unix.tm_year + 1900)
-                  (tm.Unix.tm_mon + 1) tm.Unix.tm_mday;
-              if !dtime then begin
-                Printf.printf "%02d:%02d:%02d " tm.Unix.tm_hour tm.Unix.tm_min
-                  tm.Unix.tm_sec;
-                if !ddecimal then Printf.printf "%f " (time -. floor time)
-              end;
-              Printf.printf "[%20s:%d]\n>>> %s\n" label level str
-            end
-        | None -> Printf.printf "-?-\n"
+          | Some (time, label, level, str) ->
+              let tm = Unix.localtime time in
+              if level <= !max_level then begin
+                if !ddate then
+                  Printf.printf "%04d-%02d-%02d " (tm.Unix.tm_year + 1900)
+                    (tm.Unix.tm_mon + 1) tm.Unix.tm_mday;
+                if !dtime then begin
+                  Printf.printf "%02d:%02d:%02d " tm.Unix.tm_hour tm.Unix.tm_min
+                    tm.Unix.tm_sec;
+                  if !ddecimal then Printf.printf "%f " (time -. floor time)
+                end;
+                Printf.printf "[%20s:%d]\n>>> %s\n" label level str
+              end
+          | None -> Printf.printf "-?-\n"
       end;
       h f
     with End_of_file -> ()
