@@ -3,7 +3,7 @@
 (name dtools)
 (version 0.4.5)
 (source (github savonet/ocaml-dtools))
-(license GPL-2.0)
+(license GPL-2.0-only)
 (authors "The Savonet Team <savonet-users@lists.sourceforge.net>")
 (maintainers "Romain Beauxis <toots@rastageeks.org>")
 
