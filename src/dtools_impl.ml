@@ -420,38 +420,35 @@ module Init = struct
     stop.depends <- a :: stop.depends;
     a
 
-  let exec a =
+  let rec exec a =
     let log =
       if conf_trace#get then fun s ->
         let id = Thread.id (Thread.self ()) in
         Printf.printf "init(%i):%-35s@%s\n%!" id a.name s
       else fun _ -> ()
     in
-    let rec exec a =
-      log "called";
-      Mutex.lock a.mutex;
-      try
-        if not a.launched then begin
-          a.launched <- true;
-          log "start";
-          log "start-depends";
-          List.iter exec a.depends;
-          log "stop-depends";
-          log "start-atom";
-          a.f ();
-          log "stop-atom";
-          log "start-triggers";
-          List.iter exec a.triggers;
-          log "stop-triggers";
-          log "stop"
-        end;
-        Mutex.unlock a.mutex;
-        log "return"
-      with e ->
-        Mutex.unlock a.mutex;
-        raise e
-    in
-    exec a
+    log "called";
+    Mutex.lock a.mutex;
+    try
+      if not a.launched then begin
+        a.launched <- true;
+        log "start";
+        log "start-depends";
+        List.iter exec a.depends;
+        log "stop-depends";
+        log "start-atom";
+        a.f ();
+        log "stop-atom";
+        log "start-triggers";
+        List.iter exec a.triggers;
+        log "stop-triggers";
+        log "stop"
+      end;
+      Mutex.unlock a.mutex;
+      log "return"
+    with e ->
+      Mutex.unlock a.mutex;
+      raise e
 
   let rec wait_signal () =
     try ignore (Thread.wait_signal [Sys.sigterm; Sys.sigint]) with

@@ -1,3 +1,7 @@
+0.4.6 (unreleased)
+=====
+* Fix tracing log.
+
 0.4.5 (2023-06-27)
 =====
 * Add optional log colorization function.
