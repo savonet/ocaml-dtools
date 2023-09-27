@@ -1,6 +1,7 @@
 0.4.6 (unreleased)
 =====
 * Fix tracing log.
+* Make sure `Log.stop` atom is idempotent.
 
 0.4.5 (2023-06-27)
 =====

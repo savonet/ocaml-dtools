@@ -860,6 +860,7 @@ module Log = struct
       match !log_thread with
         | None -> ()
         | Some th ->
+            log_thread := None;
             Condition.signal log_condition;
             Thread.join th
     end;
