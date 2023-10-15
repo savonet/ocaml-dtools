@@ -758,7 +758,7 @@ module Log = struct
   let build path =
     let rec aux p l (t : Conf.ut) =
       match p with
-        | [] -> t :: l
+        | [] -> List.rev (t :: l)
         | s :: q ->
             let st =
               try t#path [s]
