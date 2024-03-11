@@ -3,6 +3,7 @@
 * Fix tracing log.
 * Make sure `Log.stop` atom is idempotent.
 * Evaluate log level depth-first.
+* Switch log processing to lock-free implementation.
 
 0.4.5 (2023-06-27)
 =====

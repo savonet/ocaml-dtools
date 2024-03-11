@@ -17,6 +17,8 @@
   @author Stephane Gimenez
 *)
 
+module Queue = Saturn_lockfree.Queue
+
 module Conf = struct
   type link = string
 
@@ -702,9 +704,9 @@ module Log = struct
   (* Avoid interlacing logs *)
   let log_mutex = Mutex.create ()
   let log_condition = Condition.create ()
-  let log_queue = ref (Queue.create ())
+  let log_queue = Queue.create ()
   let log_stop = ref false
-  let log_thread = ref None
+  let log_thread = Atomic.make None
 
   let mutexify f x =
     Mutex.lock log_mutex;
@@ -716,22 +718,15 @@ module Log = struct
       Mutex.unlock log_mutex;
       raise e
 
-  let rotate_queue () =
-    let new_q = Queue.create () in
-    mutexify
-      (fun () ->
-        let q = !log_queue in
-        log_queue := new_q;
-        q)
-      ()
-
-  let flush_queue () =
-    let rec flush q =
-      Queue.iter print q;
-      let q = rotate_queue () in
-      if not (Queue.is_empty q) then flush q
+  let flush_queue =
+    let rec flush () =
+      match Queue.pop_opt log_queue with
+        | Some el ->
+            print el;
+            flush ()
+        | None -> ()
     in
-    flush (rotate_queue ())
+    flush
 
   let log_thread_fn () =
     let rec f () =
@@ -746,14 +741,13 @@ module Log = struct
             end)
           ()
       in
-      if not log_stop then f ()
+      if not log_stop then f () else flush_queue ()
     in
     f ()
 
-  let proceed =
-    mutexify (fun entry ->
-        Queue.push entry !log_queue;
-        Condition.signal log_condition)
+  let proceed entry =
+    Queue.push log_queue entry;
+    Condition.signal log_condition
 
   let build path =
     let rec aux p l (t : Conf.ut) =
@@ -844,7 +838,7 @@ module Log = struct
         colorize = (fun x -> x);
         entry = { time; level = None; label = None; log = ">>> LOG START" };
       };
-    log_thread := Some (Thread.create log_thread_fn ())
+    Atomic.set log_thread (Some (Thread.create log_thread_fn ()))
 
   let start = Init.make ~name:"init-log-start" ~before:[Init.start] init
 
@@ -857,10 +851,9 @@ module Log = struct
         entry = { time; level = None; label = None; log = ">>> LOG END" };
       };
     begin
-      match !log_thread with
+      match Atomic.exchange log_thread None with
         | None -> ()
         | Some th ->
-            log_thread := None;
             Condition.signal log_condition;
             Thread.join th
     end;

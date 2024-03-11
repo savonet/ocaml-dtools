@@ -4,6 +4,7 @@
  (libraries
   str
   threads
+  saturn_lockfree
   unix
   (select
    dtools_syslog.ml
