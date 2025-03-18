@@ -622,6 +622,7 @@ module Log = struct
 
   type t =
     < active : int -> bool
+    ; level : int
     ; set_level : int -> unit
     ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
@@ -758,6 +759,7 @@ module Log = struct
 
       method active level = !conf_level () <= level
 
+      method level = !conf_level ()
       method set_level level = conf_level := (fun () -> level)
 
       method g ?(colorize = fun x -> x) level =

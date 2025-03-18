@@ -274,6 +274,7 @@ module Log : sig
     *)
   type t =
     < active : int -> bool
+    ; level : int
     ; set_level : int -> unit
     ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
