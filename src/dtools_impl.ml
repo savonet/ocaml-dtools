@@ -757,7 +757,7 @@ module Log = struct
     object (self : t)
       method path = path
 
-      method active level = !conf_level () <= level
+      method active level = level <= !conf_level ()
 
       method level = !conf_level ()
       method set_level level = conf_level := (fun () -> level)
