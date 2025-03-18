@@ -461,7 +461,7 @@ module Init = struct
   exception StartError of exn
   exception StopError of exn
 
-  (* Dummy functions in the case where 
+  (* Dummy functions in the case where
    * Printexc does not have the required
    * functions. *)
   let get_backtrace () =
@@ -622,6 +622,7 @@ module Log = struct
 
   type t =
     < active : int -> bool
+    ; set_level : int -> unit
     ; path : Conf.path
     ; f : 'a. int -> ('a, unit, string, unit) format4 -> 'a
     ; g :
@@ -749,39 +750,15 @@ module Log = struct
     Queue.push log_queue entry;
     Condition.signal log_condition
 
-  let build path =
-    let rec aux p l (t : Conf.ut) =
-      match p with
-        | [] -> List.rev (t :: l)
-        | s :: q ->
-            let st =
-              try t#path [s]
-              with Conf.Unbound _ ->
-                let c = Conf.int ~p:(t#plug s) "subordinate log level" in
-                c#ut
-            in
-            aux q (t :: l) st
-    in
-    aux path [] conf_level#ut
-
   let make path : t =
-    let confs = build path in
     let path_str = Conf.string_of_path path in
+    let conf_level = ref (fun () -> conf_level#get) in
     object (self : t)
       method path = path
 
-      method active level =
-        let rec aux l =
-          match l with
-            | [] -> None
-            | t :: q -> (
-                match aux q with
-                  | Some i -> Some i
-                  | None -> (
-                      try Some (Conf.as_int t)#get
-                      with Conf.Undefined _ -> None))
-        in
-        match aux confs with None -> false | Some i -> i >= level
+      method active level = !conf_level () <= level
+
+      method set_level level = conf_level := (fun () -> level)
 
       method g ?(colorize = fun x -> x) level =
         match self#active level with
