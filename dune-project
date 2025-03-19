@@ -13,7 +13,6 @@
  (name dtools)
  (synopsis "Library providing various helper functions to make daemons")
  (depends
-  saturn_lockfree
   (ocaml (>= 4.05.0))
   dune)
  (depopts syslog))

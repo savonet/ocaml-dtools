@@ -8,7 +8,6 @@ license: "GPL-2.0-only"
 homepage: "https://github.com/savonet/ocaml-dtools"
 bug-reports: "https://github.com/savonet/ocaml-dtools/issues"
 depends: [
-  "saturn_lockfree"
   "ocaml" {>= "4.05.0"}
   "dune" {>= "2.8"}
   "odoc" {with-doc}
